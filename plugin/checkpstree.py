@@ -63,44 +63,51 @@ class CheckPSTree(pstree.PSTree):
 ===============================================================================
 Analysis report
 """)
-        outfd.write(str(check_data))
-        self.table_header(outfd,
-                [("test", "<5"),
-                 ("test2", ">6"),
-                 ("test3", "")])
-        self.table_row(outfd,
-            "col1", "col2", "col3")
+        def printProcs(indent, pstree):
+            for p in pstree:
+                outfd.write("{}{}\n".format('.' * indent, p['pid']))
+                printProcs(indent + 1, p['children'])
+        printProcs(0, check_data['pstree'])
 
 
-    def buildPTree(self, pdict, ptree = []):
-        for (pid, proc) in pdict.items():
-            print("PPID {} - PID {}\n".format(proc.InheritedFromUniqueProcessId, pid))
-            if len(ptree) == 0:
-                ptree.append({pid:proc})
-            else:
-                ptree.append({pid:proc})
-            del pdict[pid]
-        return ptree
+    def buildPsTree(self, pslist):
 
-#         def buildPChildTree(parent):
-#             return { "parent": parent, "childreen": [child_list] }
-# 
-#         roots = self.findPRoots(pstree_data)
-#         ptree = []
-#         for root in roots:
-#             ptree.add(buildPChildTree(pstree_data, root))
-#         return ptree
+        def attachChild(child, pstree):
+            for parent in pstree:
+                if parent['pid'] == child['ppid']:
+                    parent['children'].append(child)
+                    return True
+                else:
+                    if attachChild(child, parent['children']):
+                        return True
+            return False
 
+        def addPs(task, pstree):
+            proc = {'pid': int(task.UniqueProcessId),
+                    'ppid': int(task.InheritedFromUniqueProcessId),
+                    'proc': task,
+                    'children': []}
+            for index, child in enumerate(pstree):
+                if child['ppid'] == proc['pid']:
+                    proc['children'].append(child)
+                    del pstree[index]
+            if not attachChild(proc, pstree):
+                pstree.append(proc)
 
-    def checking(self, psdict):
-        pstree = self.buildPTree(psdict)
+        pstree = []
+        for task in pslist:
+            addPs(task, pstree)
         return pstree
+
+
+    def checking(self, pslist):
+        pstree = self.buildPsTree(pslist)
+        return {'pstree': pstree}
         
 
     @cache.CacheDecorator(lambda self: "tests/checkpstree/verbose={0}".format(self._config.VERBOSE))
     def calculate(self):
         psdict = pstree.PSTree.calculate(self)
-        # TODO: check why deepcopy doesn't work
-        # check_data = self.checking(copy.deepcopy(psdict))
-        check_data = self.checking(pstree.PSTree.calculate(self))
+        addr_space = utils.load_as(self._config)
+        check_data = self.checking(tasks.pslist(addr_space))
         return { "pstree": psdict, "check": check_data }
