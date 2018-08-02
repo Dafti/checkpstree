@@ -34,6 +34,8 @@ import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.pstree as pstree
 import copy
+import os.path
+import json
 
 #pylint: disable-msg=C0111
 
@@ -103,10 +105,46 @@ Analysis report
     def checking(self, pslist):
         pstree = self.buildPsTree(pslist)
         return {'pstree': pstree}
-        
+
+
+    # Check the configuration files
+    # If no configuration was provided we try to load a configuration file from
+    # <plugin_path>/checkpstree_configs/<profile>.json
+    # profile being the value in self._config.PROFILE
+    # If the user specifies another configuration file in self._config.CONFIG
+    # then the user specified file is loaded.
+    def checkConfig(self):
+        config_filename = self._config.CONFIG
+        if config_filename is None:
+            profile = self._config.PROFILE + ".json"
+            path = self._config.PLUGINS
+            config_filename = os.path.join(path, "checkpstree_configs", profile)
+        # check config file exists and it's a file
+        if not os.path.exists(config_filename):
+            debug.error("Configuration file '{}' does not exist".format(
+                config_filename))
+        if not os.path.isfile(config_filename):
+            debug.error("Configuration filename '{}' is not a regular file".format(
+                config_filename))
+        # open configuration file and parse contents
+        try:
+            config_file = open(config_filename)
+        except:
+            debug.error("Couldn't open configuration file '{}'".format(
+                config_filename))
+        try:
+            config = json.load(config_file)
+        except:
+            debug.error("Couldn't load json configuration from '{}'".format(
+                config_filename))
+        # TODO: could be nice to make some checking on the configuration format
+        #       to verify that it has the supported fields and so on
+        self._check_config = config['config']
+
 
     @cache.CacheDecorator(lambda self: "tests/checkpstree/verbose={0}".format(self._config.VERBOSE))
     def calculate(self):
+        self.checkConfig()
         psdict = pstree.PSTree.calculate(self)
         addr_space = utils.load_as(self._config)
         check_data = self.checking(tasks.pslist(addr_space))
