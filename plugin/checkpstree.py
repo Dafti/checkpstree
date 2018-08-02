@@ -23,14 +23,14 @@
 #
 
 """checkpstree example file"""
-from volatility import renderers
-from volatility.renderers.basic import Address
+# from volatility import renderers
+# from volatility.renderers.basic import Address
 
 import volatility.win32.tasks as tasks
 import volatility.utils as utils
-import volatility.plugins.common as common
+# import volatility.plugins.common as common
 import volatility.cache as cache
-import volatility.obj as obj
+# import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.pstree as pstree
 import copy
