@@ -1,0 +1,9 @@
+{"config":
+  {
+    "unique_names": ["services.exe", "System"],
+    "reference_parents": {
+      "svchost.exe":"services.exe",
+      "smss.exe" :"System"
+    }
+  }
+}
