@@ -69,7 +69,22 @@ Analysis report
             for p in pstree:
                 outfd.write("{}{}\n".format('.' * indent, p['pid']))
                 printProcs(indent + 1, p['children'])
+
+        def printUniqueNames(testedEntries):
+            self.table_header(outfd,
+                    [("Name", "<50"),
+                     ("Count", ">6"),
+                     ("Pass", ">6")])
+            for t in testedEntries:
+                self.table_row(outfd,
+                        t['name'],
+                        t['count'],
+                        'True' if t['pass'] else 'False')
+
         printProcs(0, check_data['pstree'])
+        check = check_data['check']
+        if 'unique_names' in check:
+            printUniqueNames(check['unique_names'])
 
 
     def buildPsTree(self, pslist):
@@ -102,9 +117,32 @@ Analysis report
         return pstree
 
 
+    def checkUniqueNames(self, pstree):
+        def countOcurrences(name, pstree):
+            count = 0
+            for ps in pstree:
+                if str(ps['proc'].ImageFileName) == name:
+                    count = count + 1
+                count = count + countOcurrences(name, ps['children'])
+            return count
+
+        report = []
+        for name in self._check_config['unique_names']:
+            count = countOcurrences(name, pstree)
+            ret = {'name': name,
+                    'count': count,
+                    'pass': True if count <= 1 else False}
+            report.append(ret)
+        return report
+
+
     def checking(self, pslist):
         pstree = self.buildPsTree(pslist)
-        return {'pstree': pstree}
+        check = {}
+        if self._check_config['unique_names']:
+            report = self.checkUniqueNames(pstree)
+            check['unique_names'] = report
+        return {'pstree': pstree, 'check': check}
 
 
     # Check the configuration files
