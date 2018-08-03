@@ -103,7 +103,9 @@ Analysis report
                     )
             outfd.write("\n")
 
+        outfd.write("PSTree\n")
         printProcs(0, check_data['pstree'])
+        outfd.write("\n")
         check = check_data['check']
         if 'unique_names' in check:
             printUniqueNames(check['unique_names'])
