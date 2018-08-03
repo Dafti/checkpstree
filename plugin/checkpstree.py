@@ -70,21 +70,45 @@ Analysis report
                 outfd.write("{}{}\n".format('.' * indent, p['pid']))
                 printProcs(indent + 1, p['children'])
 
-        def printUniqueNames(testedEntries):
+        def printUniqueNames(entries):
+            outfd.write("Unique Names Check\n")
             self.table_header(outfd,
                     [("Name", "<50"),
                      ("Count", ">6"),
                      ("Pass", ">6")])
-            for t in testedEntries:
+            for e in entries:
                 self.table_row(outfd,
-                        t['name'],
-                        t['count'],
-                        'True' if t['pass'] else 'False')
+                        e['name'],
+                        e['count'],
+                        'True' if e['pass'] else 'False')
+            outfd.write("\n")
+
+        def printReferenceParents(entries):
+            outfd.write("Reference Parents Check\n")
+            self.table_header(outfd,
+                    [('Name', '<50'),
+                        ('pid', '>6'),
+                        ('Parent', '<50'),
+                        ('ppid', '>6'),
+                        ('Pass', '>6'),
+                        ('Expected Parent', '<50')])
+            for e in entries:
+                self.table_row(outfd,
+                    e['name'],
+                    e['pid'],
+                    e['parent'],
+                    e['ppid'],
+                    'True' if e['pass'] else 'False',
+                    self._check_config['reference_parents'][e['name']]
+                    )
+            outfd.write("\n")
 
         printProcs(0, check_data['pstree'])
         check = check_data['check']
         if 'unique_names' in check:
             printUniqueNames(check['unique_names'])
+        if 'reference_parents' in check:
+            printReferenceParents(check['reference_parents'])
 
 
     def buildPsTree(self, pslist):
@@ -136,12 +160,34 @@ Analysis report
         return report
 
 
+    def checkReferenceParents(self, pstree):
+        report = []
+        ref_parents = self._check_config['reference_parents']
+        def checkReferenceParent(parent, pstree):
+            for ps in pstree:
+                if str(ps['proc'].ImageFileName) in ref_parents.keys():
+                    report.append({
+                        'pid': ps['pid'],
+                        'ppid': ps['ppid'],
+                        'name': str(ps['proc'].ImageFileName),
+                        'parent': parent,
+                        'pass': parent == ref_parents[str(ps['proc'].ImageFileName)]})
+                checkReferenceParent(str(ps['proc'].ImageFileName),
+                    ps['children'])
+        for ps in pstree:
+            checkReferenceParent(str(ps['proc'].ImageFileName),
+                ps['children'])
+        return report
+
+
     def checking(self, pslist):
         pstree = self.buildPsTree(pslist)
         check = {}
         if self._check_config['unique_names']:
             report = self.checkUniqueNames(pstree)
             check['unique_names'] = report
+        if self._check_config['reference_parents']:
+            check['reference_parents'] = self.checkReferenceParents(pstree)
         return {'pstree': pstree, 'check': check}
 
 
