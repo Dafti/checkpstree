@@ -69,8 +69,9 @@ Analysis report
 """)
         def printProcs(indent, pstree):
             for p in pstree:
-                outfd.write("{}{} {} {}\n".format('.' * indent, p['pid'], p['name'],
-                    p['fullname'] if p['fullname'] is not None else '<None>'))
+                outfd.write("{}{} {} {} {}\n".format('.' * indent, p['pid'], p['name'],
+                    p['peb']['fullname'] if p['peb']['fullname'] is not None else '<None>',
+                    p['vad']['filename'] if p['vad']['filename'] is not None else '<None>'))
                 printProcs(indent + 1, p['children'])
 
         def printUniqueNames(entries):
@@ -162,11 +163,13 @@ Analysis report
                         ext = os.path.splitext(str(vad.FileObject.FileName))[1].lower()
                     if (ext == ".exe") or (vad.Start == task.Peb.ImageBaseAddress):
                         vad_filename =  str(vad.FileObject.FileName)
+                        debug.info("VAD {}".format(vad_filename))
                         vad_baseaddr = Address(vad.Start)
                         vad_size = Hex(vad.End - vad.Start)
                         vad_protection = str(vadinfo.PROTECT_FLAGS.get(vad.VadFlags.Protection.v()) or '')
                         vad_tag = str(vad.Tag or '')
                         vad_found = True
+                        break
                 if vad_found == False:
                     vad_filename = 'NA'
                     vad_baseaddr = Address(0)
@@ -175,9 +178,10 @@ Analysis report
                     vad_tag = 'NA'
             else:
                 debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
-            proc['cmdline'] = proc_cmdline
-            proc['basename'] = proc_basename
-            proc['fullname'] = proc_fullname
+            proc['peb'] = {
+                    'cmdline': proc_cmdline,
+                    'basename': proc_basename,
+                    'fullname': proc_fullname}
             proc['vad'] = {'filename': vad_filename,
                     'baseaddr': vad_baseaddr,
                     'size': vad_size,
