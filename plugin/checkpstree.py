@@ -148,7 +148,6 @@ Analysis report
             vad_protection = '<No VAD>'
             vad_tag = '<No VAD>'
             if task.Peb:
-                debug.info("{} {} has Peb".format(proc['pid'], proc['name']))
                 peb_cmdline = task.Peb.ProcessParameters.CommandLine
                 mods = task.get_load_modules()
                 for mod in mods:
@@ -169,7 +168,6 @@ Analysis report
                         ext = os.path.splitext(str(vad.FileObject.FileName))[1].lower()
                     if (ext == ".exe") or (vad.Start == task.Peb.ImageBaseAddress):
                         vad_filename =  str(vad.FileObject.FileName)
-                        debug.info("VAD {}".format(vad_filename))
                         vad_baseaddr = Address(vad.Start)
                         vad_size = Hex(vad.End - vad.Start)
                         vad_protection = str(vadinfo.PROTECT_FLAGS.get(vad.VadFlags.Protection.v()) or '')
@@ -182,8 +180,6 @@ Analysis report
                     vad_size = Hex(0)
                     vad_protection = 'NA'
                     vad_tag = 'NA'
-            else:
-                debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
             proc['peb'] = {
                     'cmdline': peb_cmdline,
                     'image_baseaddr': peb_image_baseaddr,
