@@ -128,6 +128,7 @@ Analysis report
         def addPs(task, pstree):
             proc = {'pid': int(task.UniqueProcessId),
                     'ppid': int(task.InheritedFromUniqueProcessId),
+                    'name': str(task.ImageFileName),
                     'proc': task,
                     'children': []}
             for index, child in enumerate(pstree):
@@ -147,7 +148,7 @@ Analysis report
         def countOcurrences(name, pstree):
             count = 0
             for ps in pstree:
-                if str(ps['proc'].ImageFileName) == name:
+                if ps['name'] == name:
                     count = count + 1
                 count = count + countOcurrences(name, ps['children'])
             return count
@@ -167,18 +168,17 @@ Analysis report
         ref_parents = self._check_config['reference_parents']
         def checkReferenceParent(parent, pstree):
             for ps in pstree:
-                if str(ps['proc'].ImageFileName) in ref_parents.keys():
+                if ps['name'] in ref_parents.keys():
                     report.append({
                         'pid': ps['pid'],
                         'ppid': ps['ppid'],
-                        'name': str(ps['proc'].ImageFileName),
+                        'name': ps['name'],
                         'parent': parent,
-                        'pass': parent == ref_parents[str(ps['proc'].ImageFileName)]})
+                        'pass': parent == ref_parents[ps['name']]})
                 checkReferenceParent(str(ps['proc'].ImageFileName),
                     ps['children'])
         for ps in pstree:
-            checkReferenceParent(str(ps['proc'].ImageFileName),
-                ps['children'])
+            checkReferenceParent(ps['name'], ps['children'])
         return report
 
 
