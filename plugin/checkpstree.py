@@ -136,9 +136,9 @@ Analysis report
                     'ctime': str(task.CreateTime),
                     'proc': task,
                     'children': []}
-            proc_cmdline = None
-            proc_basename = None
-            proc_fullname = None
+            peb_cmdline = None
+            peb_basename = None
+            peb_fullname = None
             vad_filename = '<No VAD>'
             vad_baseaddr = Address(0)
             vad_size = Hex(0)
@@ -146,13 +146,13 @@ Analysis report
             vad_tag = '<No VAD>'
             if task.Peb:
                 debug.info("{} {} has Peb".format(proc['pid'], proc['name']))
-                proc_cmdline = task.Peb.ProcessParameters.CommandLine
+                peb_cmdline = task.Peb.ProcessParameters.CommandLine
                 mods = task.get_load_modules()
                 for mod in mods:
                     ext = os.path.splitext(str(mod.FullDllName))[1].lower()
                     if ext == '.exe':
-                        proc_basename = str(mod.BaseDllName)
-                        proc_fullname = str(mod.FullDllName)
+                        peb_basename = str(mod.BaseDllName)
+                        peb_fullname = str(mod.FullDllName)
                         break
                 for vad, addr_space in task.get_vads(vad_filter = task._mapped_file_filter):
                     ext = ""
@@ -179,9 +179,9 @@ Analysis report
             else:
                 debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
             proc['peb'] = {
-                    'cmdline': proc_cmdline,
-                    'basename': proc_basename,
-                    'fullname': proc_fullname}
+                    'cmdline': peb_cmdline,
+                    'basename': peb_basename,
+                    'fullname': peb_fullname}
             proc['vad'] = {'filename': vad_filename,
                     'baseaddr': vad_baseaddr,
                     'size': vad_size,
