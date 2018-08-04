@@ -70,7 +70,7 @@ Analysis report
         def printProcs(indent, pstree):
             for p in pstree:
                 outfd.write("{}{} {} {} {}\n".format('.' * indent, p['pid'], p['name'],
-                    p['peb']['fullname'] if p['peb']['fullname'] is not None else '<None>',
+                    p['peb']['cmdline'] if p['peb']['cmdline'] is not None else '<None>',
                     p['vad']['filename'] if p['vad']['filename'] is not None else '<None>'))
                 printProcs(indent + 1, p['children'])
 
@@ -137,6 +137,9 @@ Analysis report
                     'proc': task,
                     'children': []}
             peb_cmdline = None
+            peb_image_baseaddr = Address(0)
+            peb_baseaddr = Address(0)
+            peb_size = Hex(0)
             peb_basename = None
             peb_fullname = None
             vad_filename = '<No VAD>'
@@ -151,6 +154,9 @@ Analysis report
                 for mod in mods:
                     ext = os.path.splitext(str(mod.FullDllName))[1].lower()
                     if ext == '.exe':
+                        peb_image_baseaddr = Address(task.Peb.ImageBaseAddress)
+                        peb_baseaddr = Address(mod.DllBase)
+                        peb_size = Hex(0)
                         peb_basename = str(mod.BaseDllName)
                         peb_fullname = str(mod.FullDllName)
                         break
@@ -180,6 +186,9 @@ Analysis report
                 debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
             proc['peb'] = {
                     'cmdline': peb_cmdline,
+                    'image_baseaddr': peb_image_baseaddr,
+                    'baseaddr': peb_baseaddr,
+                    'size': peb_size,
                     'basename': peb_basename,
                     'fullname': peb_fullname}
             proc['vad'] = {'filename': vad_filename,
