@@ -30,9 +30,11 @@ import volatility.win32.tasks as tasks
 import volatility.utils as utils
 # import volatility.plugins.common as common
 import volatility.cache as cache
-# import volatility.obj as obj
+import volatility.obj as obj
 import volatility.debug as debug
 import volatility.plugins.pstree as pstree
+from volatility.renderers.basic import Address,Hex
+import volatility.plugins.vadinfo as vadinfo
 import copy
 import os.path
 import json
@@ -67,7 +69,8 @@ Analysis report
 """)
         def printProcs(indent, pstree):
             for p in pstree:
-                outfd.write("{}{}\n".format('.' * indent, p['pid']))
+                outfd.write("{}{} {} {}\n".format('.' * indent, p['pid'], p['name'],
+                    p['fullname'] if p['fullname'] is not None else '<None>'))
                 printProcs(indent + 1, p['children'])
 
         def printUniqueNames(entries):
@@ -129,8 +132,57 @@ Analysis report
             proc = {'pid': int(task.UniqueProcessId),
                     'ppid': int(task.InheritedFromUniqueProcessId),
                     'name': str(task.ImageFileName),
+                    'ctime': str(task.CreateTime),
                     'proc': task,
                     'children': []}
+            proc_cmdline = None
+            proc_basename = None
+            proc_fullname = None
+            vad_filename = '<No VAD>'
+            vad_baseaddr = Address(0)
+            vad_size = Hex(0)
+            vad_protection = '<No VAD>'
+            vad_tag = '<No VAD>'
+            if task.Peb:
+                debug.info("{} {} has Peb".format(proc['pid'], proc['name']))
+                proc_cmdline = task.Peb.ProcessParameters.CommandLine
+                mods = task.get_load_modules()
+                for mod in mods:
+                    ext = os.path.splitext(str(mod.FullDllName))[1].lower()
+                    if ext == '.exe':
+                        proc_basename = str(mod.BaseDllName)
+                        proc_fullname = str(mod.FullDllName)
+                        break
+                for vad, addr_space in task.get_vads(vad_filter = task._mapped_file_filter):
+                    ext = ""
+                    vad_found = False
+                    if obj.Object("_IMAGE_DOS_HEADER", offset = vad.Start, vm = addr_space).e_magic != 0x5A4D:
+                        continue
+                    if str(vad.FileObject.FileName or ''):
+                        ext = os.path.splitext(str(vad.FileObject.FileName))[1].lower()
+                    if (ext == ".exe") or (vad.Start == task.Peb.ImageBaseAddress):
+                        vad_filename =  str(vad.FileObject.FileName)
+                        vad_baseaddr = Address(vad.Start)
+                        vad_size = Hex(vad.End - vad.Start)
+                        vad_protection = str(vadinfo.PROTECT_FLAGS.get(vad.VadFlags.Protection.v()) or '')
+                        vad_tag = str(vad.Tag or '')
+                        vad_found = True
+                if vad_found == False:
+                    vad_filename = 'NA'
+                    vad_baseaddr = Address(0)
+                    vad_size = Hex(0)
+                    vad_protection = 'NA'
+                    vad_tag = 'NA'
+            else:
+                debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
+            proc['cmdline'] = proc_cmdline
+            proc['basename'] = proc_basename
+            proc['fullname'] = proc_fullname
+            proc['vad'] = {'filename': vad_filename,
+                    'baseaddr': vad_baseaddr,
+                    'size': vad_size,
+                    'protection': vad_protection,
+                    'tag': vad_tag}
             for index, child in enumerate(pstree):
                 if child['ppid'] == proc['pid']:
                     proc['children'].append(child)
