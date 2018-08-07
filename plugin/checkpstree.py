@@ -69,8 +69,9 @@ Analysis report
 """)
         def printProcs(indent, pstree):
             for p in pstree:
-                outfd.write("{}{} {} {}\n".format('.' * indent, p['pid'], p['name'],
-                    p['fullname'] if p['fullname'] is not None else '<None>'))
+                outfd.write("{}{} {} {} {}\n".format('.' * indent, p['pid'], p['name'],
+                    p['peb']['cmdline'] if p['peb']['cmdline'] is not None else '<None>',
+                    p['vad']['filename'] if p['vad']['filename'] is not None else '<None>'))
                 printProcs(indent + 1, p['children'])
 
         def printUniqueNames(entries):
@@ -135,23 +136,28 @@ Analysis report
                     'ctime': str(task.CreateTime),
                     'proc': task,
                     'children': []}
-            proc_cmdline = None
-            proc_basename = None
-            proc_fullname = None
+            peb_cmdline = None
+            peb_image_baseaddr = Address(0)
+            peb_baseaddr = Address(0)
+            peb_size = Hex(0)
+            peb_basename = None
+            peb_fullname = None
             vad_filename = '<No VAD>'
             vad_baseaddr = Address(0)
             vad_size = Hex(0)
             vad_protection = '<No VAD>'
             vad_tag = '<No VAD>'
             if task.Peb:
-                debug.info("{} {} has Peb".format(proc['pid'], proc['name']))
-                proc_cmdline = task.Peb.ProcessParameters.CommandLine
+                peb_cmdline = task.Peb.ProcessParameters.CommandLine
                 mods = task.get_load_modules()
                 for mod in mods:
                     ext = os.path.splitext(str(mod.FullDllName))[1].lower()
                     if ext == '.exe':
-                        proc_basename = str(mod.BaseDllName)
-                        proc_fullname = str(mod.FullDllName)
+                        peb_image_baseaddr = Address(task.Peb.ImageBaseAddress)
+                        peb_baseaddr = Address(mod.DllBase)
+                        peb_size = Hex(0)
+                        peb_basename = str(mod.BaseDllName)
+                        peb_fullname = str(mod.FullDllName)
                         break
                 for vad, addr_space in task.get_vads(vad_filter = task._mapped_file_filter):
                     ext = ""
@@ -167,17 +173,20 @@ Analysis report
                         vad_protection = str(vadinfo.PROTECT_FLAGS.get(vad.VadFlags.Protection.v()) or '')
                         vad_tag = str(vad.Tag or '')
                         vad_found = True
+                        break
                 if vad_found == False:
                     vad_filename = 'NA'
                     vad_baseaddr = Address(0)
                     vad_size = Hex(0)
                     vad_protection = 'NA'
                     vad_tag = 'NA'
-            else:
-                debug.info("{} {} has no Peb".format(proc['pid'], proc['name']))
-            proc['cmdline'] = proc_cmdline
-            proc['basename'] = proc_basename
-            proc['fullname'] = proc_fullname
+            proc['peb'] = {
+                    'cmdline': peb_cmdline,
+                    'image_baseaddr': peb_image_baseaddr,
+                    'baseaddr': peb_baseaddr,
+                    'size': peb_size,
+                    'basename': peb_basename,
+                    'fullname': peb_fullname}
             proc['vad'] = {'filename': vad_filename,
                     'baseaddr': vad_baseaddr,
                     'size': vad_size,
