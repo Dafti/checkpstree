@@ -61,6 +61,7 @@ class CheckPSTree(pstree.PSTree):
                 action='store', type='str')
 
     def render_text(self, outfd, data):
+        # Render the PSTree output
         pstree.PSTree.render_text(self, outfd, data["pstree"])
         check_data = data["check"]
         outfd.write("""
@@ -119,7 +120,13 @@ Analysis report
 
     def buildPsTree(self, pslist):
 
+        # Try to find a tree node which is parent to the passed process (child) and attach it to it
         def attachChild(child, pstree):
+            # At each root node of the current tree check if the current process node is a child of
+            # it. If not a child of the root node, try to see if it is a child of one of the root
+            # node children by recursively calling the attachChild function.
+            # If we were able to find a the parent of the process then return True, otherwise False.
+            # TODO: we could stop the loop if a parent was found.
             for parent in pstree:
                 if parent['pid'] == child['ppid']:
                     parent['children'].append(child)
@@ -129,7 +136,8 @@ Analysis report
                         return True
             return False
 
-        def addPs(task, pstree):
+        # Create a tree node
+        def createPsNode(task):
             proc = {'pid': int(task.UniqueProcessId),
                     'ppid': int(task.InheritedFromUniqueProcessId),
                     'name': str(task.ImageFileName),
@@ -192,10 +200,20 @@ Analysis report
                     'size': vad_size,
                     'protection': vad_protection,
                     'tag': vad_tag}
+            return proc
+
+        def addPs(task, pstree):
+            # create a tree node from the raw process
+            proc = createPsNode(task)
+            # check if one of the root nodes in the current process tree is a child of the
+            # node we have created, if so remove it from the tree root and put it as a child
+            # of the created node
             for index, child in enumerate(pstree):
                 if child['ppid'] == proc['pid']:
                     proc['children'].append(child)
                     del pstree[index]
+            # try to attach the current node in one of the nodes of the current tree,
+            # otherwise put it in the root of the tree
             if not attachChild(proc, pstree):
                 pstree.append(proc)
 
@@ -243,9 +261,16 @@ Analysis report
         return report
 
 
+    # Perform plugin checks. Currently it includes:
+    # - unique_names
+    # - reference_parents
     def checking(self, pslist):
+        # A tree structure (with multiple roots) is created from the processes
+        # list. This structure will be used to perform the plugin checks.
         pstree = self.buildPsTree(pslist)
         check = {}
+        # For every check in the configuration perform the correspondent check.
+        # For each configured check create a report.
         if self._check_config['unique_names']:
             report = self.checkUniqueNames(pstree)
             check['unique_names'] = report
@@ -291,8 +316,21 @@ Analysis report
 
     @cache.CacheDecorator(lambda self: "tests/checkpstree/verbose={0}".format(self._config.VERBOSE))
     def calculate(self):
+        # Check the plugin configuration
         self.checkConfig()
+        # We get the output of PSTree.calculate, this output will be later displayed in the
+        # the render_text method.
+        # Currently the PSTree.calculate output is not used for anything else, and as such it
+        # could be removed.
+        # Note that the PSTree plugin doesn't structure the processes as a tree, it only
+        # displays them as a tree.
         psdict = pstree.PSTree.calculate(self)
+        # Get the list of process
         addr_space = utils.load_as(self._config)
+        pslist = tasks.pslist(addr_space)
+        # Perform plugin checks
         check_data = self.checking(tasks.pslist(addr_space))
+        # Return output data (data that can be printed in the console)
+        # Again, the output of PSTree.calculate (psdict) could be removed as the same data
+        # is available in the plugin checked data
         return { "pstree": psdict, "check": check_data }
