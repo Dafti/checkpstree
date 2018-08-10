@@ -127,6 +127,24 @@ Analysis report
                     )
             outfd.write("\n")
 
+        def printVadFilename(entries):
+            outfd.write("Path(VAD) Check\n")
+            self.table_header(outfd,
+                    [('pid', '>6'),
+                     ('Name', '<20'),
+                     ('Path', '<40'),
+                     ('Pass', '>6'),
+                     ('Expected Path', '<40')])
+            for e in entries:
+                self.table_row(outfd,
+                    e['pid'],
+                    e['name'],
+                    e['filename'],
+                    'True' if e['pass'] else 'False',
+                    self._check_config['vad_filename'][e['name']]
+                    )
+            outfd.write("\n")
+
         outfd.write("PSTree\n")
         printProcs(0, check_data['pstree'])
         outfd.write("\n")
@@ -137,6 +155,8 @@ Analysis report
             printReferenceParents(check['reference_parents'])
         if 'peb_fullname' in check:
             printPebFullname(check['peb_fullname'])
+        if 'vad_filename' in check:
+            printVadFilename(check['vad_filename'])
 
 
     def buildPsTree(self, pslist):
@@ -295,14 +315,29 @@ Analysis report
         report = []
         peb_entries = self._check_config['peb_fullname']
         for name, path in peb_entries.iteritems():
-            ns = self.findNodes(pstree, lambda node: node['name'] == name)
-            for node in ns:
+            nodes = self.findNodes(pstree, lambda node: node['name'] == name)
+            for node in nodes:
                 report.append({
                     'pid': node['pid'],
                     'ppid': node['ppid'],
                     'name': node['name'],
                     'fullname': node['peb']['fullname'],
                     'pass': node['peb']['fullname'].lower() == path.lower()})
+        return report
+
+
+    def checkVadFilename(self, pstree):
+        report = []
+        vad_entries = self._check_config['vad_filename']
+        for name, path in vad_entries.iteritems():
+            nodes = self.findNodes(pstree, lambda node: node['name'] == name)
+            for node in nodes:
+                report.append({
+                    'pid': node['pid'],
+                    'ppid': node['ppid'],
+                    'name': node['name'],
+                    'filename': node['vad']['filename'],
+                    'pass': node['vad']['filename'] == path})
         return report
 
 
@@ -323,6 +358,8 @@ Analysis report
             check['reference_parents'] = self.checkReferenceParents(pstree)
         if self._check_config['peb_fullname']:
             check['peb_fullname'] = self.checkPebFullname(pstree)
+        if self._check_config['vad_filename']:
+            check['vad_filename'] = self.checkVadFilename(pstree)
         return {'pstree': pstree, 'check': check}
 
 

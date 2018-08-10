@@ -16,6 +16,18 @@
       "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
       "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
       "explorer.exe": "C:\\WINDOWS\\Explorer.EXE"
+    },
+    "vad_filename": {
+      "wuauclt.exe": "\\WINDOWS\\system32\\wuauclt.exe",
+      "svchost.exe": "\\WINDOWS\\system32\\svchost.exe",
+      "services.exe": "\\WINDOWS\\system32\\services.exe",
+      "winlogon.exe": "\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "\\WINDOWS\\system32\\csrss.exe",
+      "smss.exe": "\\WINDOWS\\system32\\smss.exe",
+      "spoolsv.exe": "\\WINDOWS\\system32\\spoolsv.exe",
+      "alg.exe": "\\WINDOWS\\system32\\alg.exe",
+      "lsass.exe": "\\WINDOWS\\system32\\lsass.exe",
+      "explorer.exe": "\\WINDOWS\\explorer.exe"
     }
   }
 }
