@@ -351,14 +351,14 @@ Analysis report
         check = {}
         # For every check in the configuration perform the correspondent check.
         # For each configured check create a report.
-        if self._check_config['unique_names']:
+        if 'unique_names' in self._check_config:
             report = self.checkUniqueNames(pstree)
             check['unique_names'] = report
-        if self._check_config['reference_parents']:
+        if 'reference_parents' in self._check_config:
             check['reference_parents'] = self.checkReferenceParents(pstree)
-        if self._check_config['peb_fullname']:
+        if 'peb_fullname' in self._check_config:
             check['peb_fullname'] = self.checkPebFullname(pstree)
-        if self._check_config['vad_filename']:
+        if 'vad_filename' in self._check_config:
             check['vad_filename'] = self.checkVadFilename(pstree)
         return {'pstree': pstree, 'check': check}
 
