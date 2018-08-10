@@ -70,8 +70,8 @@ Analysis report
 """)
         def printProcs(indent, pstree):
             for p in pstree:
-                outfd.write("{}{} {} {} {}\n".format('.' * indent, p['pid'], p['name'],
-                    p['peb']['cmdline'] if p['peb']['cmdline'] is not None else '<None>',
+                outfd.write("{}{} {} \-/ {} \-/ {}\n".format('.' * indent, p['pid'], p['name'],
+                    p['peb']['fullname'] if p['peb']['fullname'] is not None else '<None>',
                     p['vad']['filename'] if p['vad']['filename'] is not None else '<None>'))
                 printProcs(indent + 1, p['children'])
 
@@ -87,6 +87,7 @@ Analysis report
                         e['count'],
                         'True' if e['pass'] else 'False')
             outfd.write("\n")
+
 
         def printReferenceParents(entries):
             outfd.write("Reference Parents Check\n")
@@ -108,6 +109,24 @@ Analysis report
                     )
             outfd.write("\n")
 
+        def printPebFullname(entries):
+            outfd.write("Path(PEB) Check\n")
+            self.table_header(outfd,
+                    [('pid', '>6'),
+                     ('Name', '<20'),
+                     ('Path', '<40'),
+                     ('Pass', '>6'),
+                     ('Expected Path', '<40')])
+            for e in entries:
+                self.table_row(outfd,
+                    e['pid'],
+                    e['name'],
+                    e['fullname'],
+                    'True' if e['pass'] else 'False',
+                    self._check_config['peb_fullname'][e['name']]
+                    )
+            outfd.write("\n")
+
         outfd.write("PSTree\n")
         printProcs(0, check_data['pstree'])
         outfd.write("\n")
@@ -116,6 +135,8 @@ Analysis report
             printUniqueNames(check['unique_names'])
         if 'reference_parents' in check:
             printReferenceParents(check['reference_parents'])
+        if 'peb_fullname' in check:
+            printPebFullname(check['peb_fullname'])
 
 
     def buildPsTree(self, pslist):
@@ -261,6 +282,30 @@ Analysis report
         return report
 
 
+    def findNodes(self, pstree, match_func):
+        nodes = []
+        for ps in pstree:
+            if match_func(ps):
+                nodes.append(ps)
+            nodes.extend(self.findNodes(ps['children'], match_func))
+        return nodes
+
+
+    def checkPebFullname(self, pstree):
+        report = []
+        peb_entries = self._check_config['peb_fullname']
+        for name, path in peb_entries.iteritems():
+            ns = self.findNodes(pstree, lambda node: node['name'] == name)
+            for node in ns:
+                report.append({
+                    'pid': node['pid'],
+                    'ppid': node['ppid'],
+                    'name': node['name'],
+                    'fullname': node['peb']['fullname'],
+                    'pass': node['peb']['fullname'].lower() == path.lower()})
+        return report
+
+
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - reference_parents
@@ -276,6 +321,8 @@ Analysis report
             check['unique_names'] = report
         if self._check_config['reference_parents']:
             check['reference_parents'] = self.checkReferenceParents(pstree)
+        if self._check_config['peb_fullname']:
+            check['peb_fullname'] = self.checkPebFullname(pstree)
         return {'pstree': pstree, 'check': check}
 
 

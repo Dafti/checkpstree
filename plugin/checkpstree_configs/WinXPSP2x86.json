@@ -2,8 +2,20 @@
   {
     "unique_names": ["services.exe", "System"],
     "reference_parents": {
-      "svchost.exe":"services.exe",
-      "smss.exe" :"System"
+      "svchost.exe": "services.exe",
+      "smss.exe" : "System"
+    },
+    "peb_fullname": {
+      "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
+      "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
+      "services.exe": "C:\\WINDOWS\\system32\\services.exe",
+      "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
+      "smss.exe": "\\SystemRoot\\System32\\smss.exe",
+      "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
+      "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
+      "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
+      "explorer.exe": "C:\\WINDOWS\\Explorer.EXE"
     }
   }
 }
