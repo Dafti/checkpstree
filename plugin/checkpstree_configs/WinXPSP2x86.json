@@ -12,7 +12,8 @@
       "taskhost.exe" :  "services.exe",
       "dllhost.exe" : "services.exe",
       "spoolsv.exe" : "services.exe",
-      "LogonUI.exe" : "winlogon.exe"
+      "LogonUI.exe" : "winlogon.exe",
+      "rdpclip.exe" : "services.exe"
     },
     "peb_fullname": {
       "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
