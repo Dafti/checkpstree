@@ -413,7 +413,7 @@ Analysis report
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
         # Perform plugin checks
-        check_data = self.checking(tasks.pslist(addr_space))
+        check_data = self.checking(pslist)
         # Return output data (data that can be printed in the console)
         # Again, the output of PSTree.calculate (psdict) could be removed as the same data
         # is available in the plugin checked data
