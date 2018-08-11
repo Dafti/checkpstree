@@ -1,13 +1,22 @@
 {"config":
   {
-    "unique_names": ["services.exe", "System"],
+    "unique_names": ["services.exe", "System", "lsm.exe", "smss.exe", "wininit.exe", "lsass.exe"],
+    "no_children":  ["lsm.exe"],
+    "no_parent":    ["system", "wininit.exe", "csrss.exe", "winlogon.exe", "explorer.exe"],
     "reference_parents": {
       "svchost.exe": "services.exe",
-      "smss.exe" : "System"
+      "smss.exe" : "System",
+      "lsm.exe" : "wininit.exe",
+      "service.exe" : "wininit.exe",
+      "lsass.exe" : "wininit.exe",
+      "taskhost.exe" :  "services.exe"
     },
     "peb_fullname": {
       "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
       "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
+      "lsm.exe": "C:\\WINDOWS\\system32\\lsm.exe",
+      "taskhost.exe": "C:\\WINDOWS\\system32\\taskhost.exe",
+      "wininit.exe": "C:\\WINDOWS\\system32\\wininit.exe",
       "services.exe": "C:\\WINDOWS\\system32\\services.exe",
       "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
       "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
@@ -15,11 +24,14 @@
       "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
       "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
       "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
-      "explorer.exe": "C:\\WINDOWS\\Explorer.EXE"
+      "explorer.exe": "C:\\WINDOWS\\explorer.exe"
     },
     "vad_filename": {
       "wuauclt.exe": "\\WINDOWS\\system32\\wuauclt.exe",
       "svchost.exe": "\\WINDOWS\\system32\\svchost.exe",
+      "lsm.exe": "\\WINDOWS\\system32\\lsm.exe",
+      "taskhost.exe": "\\WINDOWS\\system32\\taskhost.exe",
+      "wininit.exe": "\\WINDOWS\\system32\\wininit.exe",
       "services.exe": "\\WINDOWS\\system32\\services.exe",
       "winlogon.exe": "\\WINDOWS\\system32\\winlogon.exe",
       "csrss.exe": "\\WINDOWS\\system32\\csrss.exe",
@@ -28,6 +40,9 @@
       "alg.exe": "\\WINDOWS\\system32\\alg.exe",
       "lsass.exe": "\\WINDOWS\\system32\\lsass.exe",
       "explorer.exe": "\\WINDOWS\\explorer.exe"
+    },
+    "static_pid":  {
+      "system": "4"
     }
   }
 }
