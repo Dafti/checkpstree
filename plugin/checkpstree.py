@@ -28,11 +28,10 @@
 
 import volatility.win32.tasks as tasks
 import volatility.utils as utils
-# import volatility.plugins.common as common
+import volatility.plugins.common as common
 import volatility.cache as cache
 import volatility.obj as obj
 import volatility.debug as debug
-import volatility.plugins.pstree as pstree
 from volatility.renderers.basic import Address,Hex
 import volatility.plugins.vadinfo as vadinfo
 import copy
@@ -41,7 +40,8 @@ import json
 
 #pylint: disable-msg=C0111
 
-class CheckPSTree(pstree.PSTree):
+# class CheckPSTree(pstree.PSTree):
+class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies"""
     # Declare meta information associated with this plugin
     meta_info = {
@@ -55,19 +55,13 @@ class CheckPSTree(pstree.PSTree):
     text_sort_column = "Pid"
 
     def __init__(self, config, *args, **kwargs):
-        pstree.PSTree.__init__(self, config, *args, **kwargs)
+        common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
         config.add_option('CONFIG', short_option='c', default=None,
                 help = 'Full path to checkpstree configuration file',
                 action='store', type='str')
 
     def render_text(self, outfd, data):
-        # Render the PSTree output
-        pstree.PSTree.render_text(self, outfd, data["pstree"])
-        check_data = data["check"]
-        outfd.write("""
-===============================================================================
-Analysis report
-""")
+
         def printProcs(indent, pstree):
             for p in pstree:
                 outfd.write("{}{} {} \-/ {} \-/ {}\n".format('.' * indent, p['pid'], p['name'],
@@ -145,10 +139,15 @@ Analysis report
                     )
             outfd.write("\n")
 
+        pstree = data['pstree']
+        check = data['check']
+        outfd.write("""
+===============================================================================
+CheckPSTree analysis report
+""")
         outfd.write("PSTree\n")
-        printProcs(0, check_data['pstree'])
+        printProcs(0, pstree)
         outfd.write("\n")
-        check = check_data['check']
         if 'unique_names' in check:
             printUniqueNames(check['unique_names'])
         if 'reference_parents' in check:
@@ -344,23 +343,20 @@ Analysis report
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - reference_parents
-    def checking(self, pslist):
-        # A tree structure (with multiple roots) is created from the processes
-        # list. This structure will be used to perform the plugin checks.
-        pstree = self.buildPsTree(pslist)
-        check = {}
+    def checking(self, pstree):
+        reports = {}
         # For every check in the configuration perform the correspondent check.
         # For each configured check create a report.
         if 'unique_names' in self._check_config:
             report = self.checkUniqueNames(pstree)
-            check['unique_names'] = report
+            reports['unique_names'] = report
         if 'reference_parents' in self._check_config:
-            check['reference_parents'] = self.checkReferenceParents(pstree)
+            reports['reference_parents'] = self.checkReferenceParents(pstree)
         if 'peb_fullname' in self._check_config:
-            check['peb_fullname'] = self.checkPebFullname(pstree)
+            reports['peb_fullname'] = self.checkPebFullname(pstree)
         if 'vad_filename' in self._check_config:
-            check['vad_filename'] = self.checkVadFilename(pstree)
-        return {'pstree': pstree, 'check': check}
+            reports['vad_filename'] = self.checkVadFilename(pstree)
+        return reports
 
 
     # Check the configuration files
@@ -402,19 +398,13 @@ Analysis report
     def calculate(self):
         # Check the plugin configuration
         self.checkConfig()
-        # We get the output of PSTree.calculate, this output will be later displayed in the
-        # the render_text method.
-        # Currently the PSTree.calculate output is not used for anything else, and as such it
-        # could be removed.
-        # Note that the PSTree plugin doesn't structure the processes as a tree, it only
-        # displays them as a tree.
-        psdict = pstree.PSTree.calculate(self)
         # Get the list of process
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
+        # A tree structure (with multiple roots) is created from the processes
+        # list. This structure will be used to perform the plugin checks.
+        pstree = self.buildPsTree(pslist)
         # Perform plugin checks
-        check_data = self.checking(pslist)
+        check_reports = self.checking(pstree)
         # Return output data (data that can be printed in the console)
-        # Again, the output of PSTree.calculate (psdict) could be removed as the same data
-        # is available in the plugin checked data
-        return { "pstree": psdict, "check": check_data }
+        return { "pstree": pstree, "check": check_reports }
