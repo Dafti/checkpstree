@@ -56,8 +56,7 @@
       "lsass.exe": ["NT AUTHORITY\\SYSTEM"],
       "svchost.exe" : ["NT AUTHORITY\\SYSTEM", "LOCAL SERVICE","NETWORK SERVICE"],
       "lsm.exe" : ["NT AUTHORITY\\SYSTEM"],
-      "LogonUI.exe" : ["NT AUTHORITY\\SYSTEM"],
-
+      "LogonUI.exe" : ["NT AUTHORITY\\SYSTEM"]
     }
   }
 }
