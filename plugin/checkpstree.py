@@ -65,68 +65,57 @@ def _build_ps_tree(pslist):
                 'ctime': str(task.CreateTime),
                 'proc': task,
                 'children': []}
-        peb_cmdline = None
-        peb_image_baseaddr = Address(0)
-        peb_baseaddr = Address(0)
-        peb_size = Hex(0)
-        peb_basename = None
-        peb_fullname = None
-        vad_filename = '<No VAD>'
-        vad_baseaddr = Address(0)
-        vad_size = Hex(0)
-        vad_protection = '<No VAD>'
-        vad_tag = '<No VAD>'
+        peb = {'cmdline': None,
+               'image_baseaddr': Address(0),
+               'baseaddr': Address(0),
+               'size': Hex(0),
+               'basename': None,
+               'fullname': None}
+        vad = {'filename': '<No VAD>',
+               'baseaddr': Address(0),
+               'size': Hex(0),
+               'protection': '<No VAD>',
+               'tag': '<No VAD>'}
         if task.Peb:
-            peb_cmdline = task.Peb.ProcessParameters.CommandLine
+            peb['cmdline'] = task.Peb.ProcessParameters.CommandLine
             mods = task.get_load_modules()
             for mod in mods:
                 ext = os.path.splitext(str(mod.FullDllName))[1].lower()
                 if ext == '.exe':
-                    peb_image_baseaddr = Address(task.Peb.ImageBaseAddress)
-                    peb_baseaddr = Address(mod.DllBase)
-                    peb_size = Hex(0)
-                    peb_basename = str(mod.BaseDllName)
-                    peb_fullname = str(mod.FullDllName)
+                    peb['image_baseaddr'] = Address(task.Peb.ImageBaseAddress)
+                    peb['baseaddr'] = Address(mod.DllBase)
+                    peb['size'] = Hex(0)
+                    peb['basename'] = str(mod.BaseDllName)
+                    peb['fullname'] = str(mod.FullDllName)
                     break
             vads = task.get_vads(vad_filter=task._mapped_file_filter)
-            for vad, addr_space in vads:
+            for entry, addr_space in vads:
                 ext = ""
                 vad_found = False
                 if obj.Object("_IMAGE_DOS_HEADER",
-                              offset=vad.Start,
+                              offset=entry.Start,
                               vm=addr_space).e_magic != 0x5A4D:
                     continue
-                if str(vad.FileObject.FileName or ''):
-                    ext = os.path.splitext(str(vad.FileObject.FileName))[1]
+                if str(entry.FileObject.FileName or ''):
+                    ext = os.path.splitext(str(entry.FileObject.FileName))[1]
                     ext = ext.lower()
                 tmp_peb_iba = task.Peb.ImageBaseAddress
-                if (ext == ".exe") or (vad.Start == tmp_peb_iba):
-                    vad_filename = str(vad.FileObject.FileName)
-                    vad_baseaddr = Address(vad.Start)
-                    vad_size = Hex(vad.End - vad.Start)
-                    tmp_vad_fp = vad.VadFlags.Protection.v()
+                if (ext == ".exe") or (entry.Start == tmp_peb_iba):
+                    vad['filename'] = str(entry.FileObject.FileName)
+                    vad['baseaddr'] = Address(entry.Start)
+                    vad['size'] = Hex(entry.End - entry.Start)
+                    tmp_vad_fp = entry.VadFlags.Protection.v()
                     tmp_vad_fp = vadinfo.PROTECT_FLAGS.get(tmp_vad_fp)
-                    vad_protection = str(tmp_vad_fp or '')
-                    vad_tag = str(vad.Tag or '')
+                    vad['protection'] = str(tmp_vad_fp or '')
+                    vad['tag'] = str(entry.Tag or '')
                     vad_found = True
                     break
             if not vad_found:
-                vad_filename = 'NA'
-                vad_baseaddr = Address(0)
-                vad_size = Hex(0)
-                vad_protection = 'NA'
-                vad_tag = 'NA'
-        proc['peb'] = {'cmdline': peb_cmdline,
-                       'image_baseaddr': peb_image_baseaddr,
-                       'baseaddr': peb_baseaddr,
-                       'size': peb_size,
-                       'basename': peb_basename,
-                       'fullname': peb_fullname}
-        proc['vad'] = {'filename': vad_filename,
-                       'baseaddr': vad_baseaddr,
-                       'size': vad_size,
-                       'protection': vad_protection,
-                       'tag': vad_tag}
+                vad['filename'] = 'NA'
+                vad['protection'] = 'NA'
+                vad['tag'] = 'NA'
+        proc['peb'] = peb
+        proc['vad'] = vad
         return proc
 
     def add_ps(task, pstree):
