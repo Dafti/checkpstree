@@ -266,6 +266,33 @@ class CheckPSTree(common.AbstractWindowsCommand):
         def print_vad_filename(entries):
             print_path(entries, False)
 
+        def print_no_children(entries):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [('pid', '>6'),
+                                   ('Name', '<20'),
+                                   ('Pass', '>6'),
+                                   ('pid_child', '>9'),
+                                   ('Name_child', '<20')])
+                for entry in entries:
+                    self.table_row(outfd,
+                                   entry['pid'],
+                                   entry['name'],
+                                   'True' if entry['pass'] else 'False',
+                                   entry['child_pid'],
+                                   entry['child_name'])
+
+            outfd.write("No children Check\n")
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
+            outfd.write("\n")
+
         pstree = data['pstree']
         check = data['check']
         outfd.write("""
@@ -279,6 +306,8 @@ CheckPSTree analysis report
             outfd.write("\n")
         if 'unique_names' in check:
             print_unique_names(check['unique_names'])
+        if 'no_children' in check:
+            print_no_children(check['no_children'])
         if 'reference_parents' in check:
             print_reference_parents(check['reference_parents'])
         if 'peb_fullname' in check:
@@ -374,7 +403,6 @@ CheckPSTree analysis report
                 if not node['children']:
                     report.append({
                         'pid': node['pid'],
-                        'ppid': node['ppid'],
                         'name': node['name'],
                         'pass': True,
                         'child_pid': None,
@@ -383,7 +411,6 @@ CheckPSTree analysis report
                     for child in node['children']:
                         report.append({
                             'pid': node['pid'],
-                            'ppid': node['ppid'],
                             'name': node['name'],
                             'pass': False,
                             'child_pid': child['pid'],
