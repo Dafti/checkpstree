@@ -427,7 +427,7 @@ CheckPSTree analysis report
                 report.append({
                     'pid': node['pid'],
                     'name': node['name'],
-                    'pass': node['pid'] == pid})
+                    'pass': node['pid'] == int(pid)})
         return report
 
     # Perform plugin checks. Currently it includes:
