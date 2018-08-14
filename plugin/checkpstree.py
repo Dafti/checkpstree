@@ -364,6 +364,32 @@ CheckPSTree analysis report
                     'pass': node['vad']['filename'] == path})
         return report
 
+    def check_no_children(self, pstree):
+        report = []
+        check_entries = self._check_config['no_children']
+        for entry in check_entries:
+            match_func = lambda node, match=entry: node['name'] == match
+            nodes = self.find_nodes(pstree, match_func)
+            for node in nodes:
+                if not node['children']:
+                    report.append({
+                        'pid': node['pid'],
+                        'ppid': node['ppid'],
+                        'name': node['name'],
+                        'pass': True,
+                        'child_pid': None,
+                        'child_name': None})
+                else:
+                    for child in node['children']:
+                        report.append({
+                            'pid': node['pid'],
+                            'ppid': node['ppid'],
+                            'name': node['name'],
+                            'pass': False,
+                            'child_pid': child['pid'],
+                            'child_name': child['name']})
+        return report
+
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - reference_parents
@@ -374,6 +400,8 @@ CheckPSTree analysis report
         if 'unique_names' in self._check_config:
             report = self.check_unique_names(pstree)
             reports['unique_names'] = report
+        if 'no_children' in self._check_config:
+            reports['no_children'] = self.check_no_children(pstree)
         if 'reference_parents' in self._check_config:
             reports['reference_parents'] = self.check_reference_parents(pstree)
         if 'peb_fullname' in self._check_config:
