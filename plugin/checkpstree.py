@@ -417,6 +417,19 @@ CheckPSTree analysis report
                             'child_name': child['name']})
         return report
 
+    def check_static_pid(self, pstree):
+        report = []
+        check_entries = self._check_config['static_pid']
+        for name, pid in check_entries.iteritems():
+            match_func = lambda node, match=name: node['name'] == match
+            nodes = self.find_nodes(pstree, match_func)
+            for node in nodes:
+                report.append({
+                    'pid': node['pid'],
+                    'name': node['name'],
+                    'pass': node['pid'] == pid})
+        return report
+
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - reference_parents
@@ -435,6 +448,8 @@ CheckPSTree analysis report
             reports['peb_fullname'] = self.check_peb_fullname(pstree)
         if 'vad_filename' in self._check_config:
             reports['vad_filename'] = self.check_vad_filename(pstree)
+        if 'static_pid' in self._check_config:
+            reports['static_pid'] = self.check_static_pid(pstree)
         return reports
 
     # Check the configuration files
