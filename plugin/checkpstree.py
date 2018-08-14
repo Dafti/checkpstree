@@ -178,84 +178,105 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 print_procs(indent + 1, proc['children'])
 
         def print_unique_names(entries):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [("Name", "<50"),
+                                   ("Count", ">6"),
+                                   ("Pass", ">6")])
+                for entry in entries:
+                    self.table_row(outfd,
+                                   entry['name'],
+                                   entry['count'],
+                                   'True' if entry['pass'] else 'False')
+
             outfd.write("Unique Names Check\n")
-            self.table_header(outfd,
-                              [("Name", "<50"),
-                               ("Count", ">6"),
-                               ("Pass", ">6")])
-            for entry in entries:
-                self.table_row(outfd,
-                               entry['name'],
-                               entry['count'],
-                               'True' if entry['pass'] else 'False')
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
             outfd.write("\n")
 
         def print_reference_parents(entries):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [('Name', '<50'),
+                                   ('pid', '>6'),
+                                   ('Parent', '<50'),
+                                   ('ppid', '>6'),
+                                   ('Pass', '>6'),
+                                   ('Expected Parent', '<50')])
+                ref_parents = self._check_config['reference_parents']
+                for entry in entries:
+                    expected = ref_parents[entry['name']]
+                    self.table_row(outfd,
+                                   entry['name'],
+                                   entry['pid'],
+                                   entry['parent'],
+                                   entry['ppid'],
+                                   'True' if entry['pass'] else 'False',
+                                   expected)
+
             outfd.write("Reference Parents Check\n")
-            self.table_header(outfd,
-                              [('Name', '<50'),
-                               ('pid', '>6'),
-                               ('Parent', '<50'),
-                               ('ppid', '>6'),
-                               ('Pass', '>6'),
-                               ('Expected Parent', '<50')])
-            ref_parents = self._check_config['reference_parents']
-            for entry in entries:
-                expected = ref_parents[entry['name']]
-                self.table_row(outfd,
-                               entry['name'],
-                               entry['pid'],
-                               entry['parent'],
-                               entry['ppid'],
-                               'True' if entry['pass'] else 'False',
-                               expected)
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
+            outfd.write("\n")
+
+        def print_path(entries, is_peb):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [('pid', '>6'),
+                                   ('Name', '<20'),
+                                   ('Path', '<40'),
+                                   ('Pass', '>6'),
+                                   ('Expected Path', '<40')])
+                for entry in entries:
+                    expected = self._check_config['vad_filename'][entry['name']]
+                    self.table_row(outfd,
+                                   entry['pid'],
+                                   entry['name'],
+                                   entry['fullname' if is_peb else 'filename'],
+                                   'True' if entry['pass'] else 'False',
+                                   expected)
+
+            outfd.write("Path({}) Check\n".format(
+                'PEB' if is_peb else 'VAD'))
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
             outfd.write("\n")
 
         def print_peb_fullname(entries):
-            outfd.write("Path(PEB) Check\n")
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Path', '<40'),
-                               ('Pass', '>6'),
-                               ('Expected Path', '<40')])
-            for entry in entries:
-                expected = self._check_config['peb_fullname'][entry['name']]
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['name'],
-                               entry['fullname'],
-                               'True' if entry['pass'] else 'False',
-                               expected)
-            outfd.write("\n")
+            print_path(entries, True)
 
         def print_vad_filename(entries):
-            outfd.write("Path(VAD) Check\n")
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Path', '<40'),
-                               ('Pass', '>6'),
-                               ('Expected Path', '<40')])
-            for entry in entries:
-                expected = self._check_config['vad_filename'][entry['name']]
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['name'],
-                               entry['filename'],
-                               'True' if entry['pass'] else 'False',
-                               expected)
-            outfd.write("\n")
+            print_path(entries, False)
 
         pstree = data['pstree']
         check = data['check']
         outfd.write("""
 ===============================================================================
 CheckPSTree analysis report
+
 """)
-        outfd.write("PSTree\n")
-        print_procs(0, pstree)
-        outfd.write("\n")
+        if self._config.VERBOSE:
+            outfd.write("PSTree\n")
+            print_procs(0, pstree)
+            outfd.write("\n")
         if 'unique_names' in check:
             print_unique_names(check['unique_names'])
         if 'reference_parents' in check:
@@ -264,7 +285,10 @@ CheckPSTree analysis report
             print_peb_fullname(check['peb_fullname'])
         if 'vad_filename' in check:
             print_vad_filename(check['vad_filename'])
+        outfd.write(
+"""===============================================================================
 
+""")
     def check_unique_names(self, pstree):
         def count_occurrences(name, pstree):
             count = 0
