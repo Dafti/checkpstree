@@ -293,6 +293,31 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     print_entries(suspicious_entries)
             outfd.write("\n")
 
+        def print_static_pid(entries):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [('pid', '>6'),
+                                   ('Name', '<20'),
+                                   ('Pass', '>6'),
+                                   ('Expected pid', '>12')])
+                for entry in entries:
+                    expected = self._check_config['static_pid'][entry['name']]
+                    self.table_row(outfd,
+                                   entry['pid'],
+                                   entry['name'],
+                                   'True' if entry['pass'] else 'False',
+                                   expected)
+            outfd.write("Static PID Check\n")
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
+            outfd.write("\n")
+
         pstree = data['pstree']
         check = data['check']
         outfd.write("""
@@ -314,6 +339,8 @@ CheckPSTree analysis report
             print_peb_fullname(check['peb_fullname'])
         if 'vad_filename' in check:
             print_vad_filename(check['vad_filename'])
+        if 'static_pid' in check:
+            print_static_pid(check['static_pid'])
         outfd.write(
 """===============================================================================
 
@@ -417,6 +444,19 @@ CheckPSTree analysis report
                             'child_name': child['name']})
         return report
 
+    def check_static_pid(self, pstree):
+        report = []
+        check_entries = self._check_config['static_pid']
+        for name, pid in check_entries.iteritems():
+            match_func = lambda node, match=name: node['name'] == match
+            nodes = self.find_nodes(pstree, match_func)
+            for node in nodes:
+                report.append({
+                    'pid': node['pid'],
+                    'name': node['name'],
+                    'pass': node['pid'] == int(pid)})
+        return report
+
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - reference_parents
@@ -435,6 +475,8 @@ CheckPSTree analysis report
             reports['peb_fullname'] = self.check_peb_fullname(pstree)
         if 'vad_filename' in self._check_config:
             reports['vad_filename'] = self.check_vad_filename(pstree)
+        if 'static_pid' in self._check_config:
+            reports['static_pid'] = self.check_static_pid(pstree)
         return reports
 
     # Check the configuration files
