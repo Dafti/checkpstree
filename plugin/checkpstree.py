@@ -293,6 +293,31 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     print_entries(suspicious_entries)
             outfd.write("\n")
 
+        def print_static_pid(entries):
+            def print_entries(entries):
+                self.table_header(outfd,
+                                  [('pid', '>6'),
+                                   ('Name', '<20'),
+                                   ('Pass', '>6'),
+                                   ('Expected pid', '>12')])
+                for entry in entries:
+                    expected = self._check_config['static_pid'][entry['name']]
+                    self.table_row(outfd,
+                                   entry['pid'],
+                                   entry['name'],
+                                   'True' if entry['pass'] else 'False',
+                                   expected)
+            outfd.write("Static PID Check\n")
+            if self._config.VERBOSE:
+                print_entries(entries)
+            else:
+                suspicious_entries = [x for x in entries if not x['pass']]
+                if not suspicious_entries:
+                    outfd.write("> No suspicious entries found\n")
+                else:
+                    print_entries(suspicious_entries)
+            outfd.write("\n")
+
         pstree = data['pstree']
         check = data['check']
         outfd.write("""
@@ -314,6 +339,8 @@ CheckPSTree analysis report
             print_peb_fullname(check['peb_fullname'])
         if 'vad_filename' in check:
             print_vad_filename(check['vad_filename'])
+        if 'static_pid' in check:
+            print_static_pid(check['static_pid'])
         outfd.write(
 """===============================================================================
 
