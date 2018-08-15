@@ -341,8 +341,8 @@ CheckPSTree analysis report
             print_vad_filename(check['vad_filename'])
         if 'static_pid' in check:
             print_static_pid(check['static_pid'])
-        outfd.write(
-"""===============================================================================
+        outfd.write("""
+===============================================================================
 
 """)
     def check_unique_names(self, pstree):
