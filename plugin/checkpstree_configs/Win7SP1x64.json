@@ -1,9 +1,62 @@
 {"config":
   {
-    "unique_names": ["services.exe", "System"],
+    "unique_names": ["services.exe", "System", "lsm.exe", "smss.exe", "wininit.exe", "lsass.exe"],
+    "no_children":  ["lsm.exe", "lsass.exe"],
+    "no_parent":    ["System", "wininit.exe", "csrss.exe", "winlogon.exe", "explorer.exe"],
     "reference_parents": {
-      "svchost.exe":"services.exe",
-      "smss.exe" :"System"
+      "svchost.exe": "services.exe",
+      "smss.exe" : "System",
+      "lsm.exe" : "wininit.exe",
+      "services.exe" : "wininit.exe",
+      "lsass.exe" : "wininit.exe",
+      "taskhost.exe" :  "services.exe",
+      "dllhost.exe" : "services.exe",
+      "spoolsv.exe" : "services.exe",
+      "LogonUI.exe" : "winlogon.exe",
+      "rdpclip.exe" : "services.exe"
+    },
+    "peb_fullname": {
+      "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
+      "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
+      "lsm.exe": "C:\\WINDOWS\\system32\\lsm.exe",
+      "taskhost.exe": "C:\\WINDOWS\\system32\\taskhost.exe",
+      "wininit.exe": "C:\\WINDOWS\\system32\\wininit.exe",
+      "services.exe": "C:\\WINDOWS\\system32\\services.exe",
+      "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
+      "smss.exe": "\\SystemRoot\\System32\\smss.exe",
+      "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
+      "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
+      "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
+      "explorer.exe": "C:\\WINDOWS\\explorer.exe"
+    },
+    "vad_filename": {
+      "wuauclt.exe": "\\WINDOWS\\system32\\wuauclt.exe",
+      "svchost.exe": "\\WINDOWS\\system32\\svchost.exe",
+      "lsm.exe": "\\WINDOWS\\system32\\lsm.exe",
+      "taskhost.exe": "\\WINDOWS\\system32\\taskhost.exe",
+      "wininit.exe": "\\WINDOWS\\system32\\wininit.exe",
+      "services.exe": "\\WINDOWS\\system32\\services.exe",
+      "winlogon.exe": "\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "\\WINDOWS\\system32\\csrss.exe",
+      "smss.exe": "\\WINDOWS\\system32\\smss.exe",
+      "spoolsv.exe": "\\WINDOWS\\system32\\spoolsv.exe",
+      "alg.exe": "\\WINDOWS\\system32\\alg.exe",
+      "lsass.exe": "\\WINDOWS\\system32\\lsass.exe",
+      "explorer.exe": "\\WINDOWS\\explorer.exe"
+    },
+    "static_pid":  {
+      "System": "4"
+    },
+    "user_name":  {
+      "smss.exe": ["NT AUTHORITY\\SYSTEM"],
+      "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
+      "wininit.exe": ["NT AUTHORITY\\SYSTEM"],
+      "services.exe": ["NT AUTHORITY\\SYSTEM"],
+      "lsass.exe": ["NT AUTHORITY\\SYSTEM"],
+      "svchost.exe" : ["NT AUTHORITY\\SYSTEM", "LOCAL SERVICE","NETWORK SERVICE"],
+      "lsm.exe" : ["NT AUTHORITY\\SYSTEM"],
+      "LogonUI.exe" : ["NT AUTHORITY\\SYSTEM"]
     }
   }
 }
