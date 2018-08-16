@@ -1,6 +1,6 @@
 {"config":
   {
-    "unique_names": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe","ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe"],
+    "unique_names": ["services.exe", "System", "smss.exe", "lsass.exe", "ctfmon.exe", "alg.exe", "spoolsv.exe", "wmiprvse.exe"],
     "no_children":  ["lsass.exe", "csrss.exe","alg.exe", "wpabaln.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "ctfmon.exe"],
     "no_parent":    ["System","explorer.exe"],
     "reference_parents": {

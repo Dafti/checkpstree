@@ -10,7 +10,7 @@
       "services.exe" : "wininit.exe",
       "lsass.exe" : "wininit.exe",
       "taskhost.exe" :  "services.exe",
-      "dllhost.exe" : "services.exe",
+      "dllhost.exe" : "svchost.exe",
       "spoolsv.exe" : "services.exe",
       "LogonUI.exe" : "winlogon.exe",
       "rdpclip.exe" : "services.exe"
