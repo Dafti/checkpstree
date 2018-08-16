@@ -63,59 +63,15 @@ def _build_ps_tree(pslist):
                 'ppid': int(task.InheritedFromUniqueProcessId),
                 'name': str(task.ImageFileName),
                 'ctime': str(task.CreateTime),
+                'audit': str(task.SeAuditProcessCreationInfo.ImageFileName.Name or ''),
+                'cmd': '',
+                'path': '',
                 'proc': task,
                 'children': []}
-        peb = {'cmdline': None,
-               'image_baseaddr': Address(0),
-               'baseaddr': Address(0),
-               'size': Hex(0),
-               'basename': None,
-               'fullname': None}
-        vad = {'filename': '<No VAD>',
-               'baseaddr': Address(0),
-               'size': Hex(0),
-               'protection': '<No VAD>',
-               'tag': '<No VAD>'}
-        if task.Peb:
-            peb['cmdline'] = task.Peb.ProcessParameters.CommandLine
-            mods = task.get_load_modules()
-            for mod in mods:
-                ext = os.path.splitext(str(mod.FullDllName))[1].lower()
-                if ext == '.exe':
-                    peb['image_baseaddr'] = Address(task.Peb.ImageBaseAddress)
-                    peb['baseaddr'] = Address(mod.DllBase)
-                    peb['size'] = Hex(0)
-                    peb['basename'] = str(mod.BaseDllName)
-                    peb['fullname'] = str(mod.FullDllName)
-                    break
-            vads = task.get_vads(vad_filter=task._mapped_file_filter)
-            for entry, addr_space in vads:
-                ext = ""
-                vad_found = False
-                if obj.Object("_IMAGE_DOS_HEADER",
-                              offset=entry.Start,
-                              vm=addr_space).e_magic != 0x5A4D:
-                    continue
-                if str(entry.FileObject.FileName or ''):
-                    ext = os.path.splitext(str(entry.FileObject.FileName))[1]
-                    ext = ext.lower()
-                tmp_peb_iba = task.Peb.ImageBaseAddress
-                if (ext == ".exe") or (entry.Start == tmp_peb_iba):
-                    vad['filename'] = str(entry.FileObject.FileName)
-                    vad['baseaddr'] = Address(entry.Start)
-                    vad['size'] = Hex(entry.End - entry.Start)
-                    tmp_vad_fp = entry.VadFlags.Protection.v()
-                    tmp_vad_fp = vadinfo.PROTECT_FLAGS.get(tmp_vad_fp)
-                    vad['protection'] = str(tmp_vad_fp or '')
-                    vad['tag'] = str(entry.Tag or '')
-                    vad_found = True
-                    break
-            if not vad_found:
-                vad['filename'] = 'NA'
-                vad['protection'] = 'NA'
-                vad['tag'] = 'NA'
-        proc['peb'] = peb
-        proc['vad'] = vad
+        process_params = task.Peb.ProcessParameters
+        if process_params:
+            proc['cmd'] = process_params.CommandLine
+            proc['path'] = process_params.ImagePathName
         return proc
 
     def add_ps(task, pstree):
