@@ -300,16 +300,14 @@ CheckPSTree analysis report
     # - static_pid
     def checking(self, psdict):
         # For every check in the configuration perform the correspondent check.
-        if 'unique_names' in self._check_config:
-            self.check_unique_names(psdict)
-        if 'no_children' in self._check_config:
-            self.check_no_children(psdict)
-        if 'reference_parents' in self._check_config:
-            self.check_reference_parents(psdict)
-        if 'path' in self._check_config:
-            self.check_path(psdict)
-        if 'static_pid' in self._check_config:
-            self.check_static_pid(psdict)
+        check_funcs = {'unique_names': self.check_unique_names,
+                       'no_children': self.check_no_children,
+                       'reference_parents': self.check_reference_parents,
+                       'path': self.check_path,
+                       'static_pid': self.check_static_pid}
+        for key in self._check_config.keys():
+            if key in check_funcs.keys():
+                check_funcs[key](psdict)
 
     # Check the configuration files
     # If no configuration was provided we try to load a configuration file from
