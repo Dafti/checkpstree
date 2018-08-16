@@ -196,7 +196,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    ('Pass', '>6'),
                                    ('Expected Path', '<40')])
                 for entry in entries:
-                    expected = self._check_config['path']
+                    expected = self._check_config['path'][entry['name']]
                     self.table_row(outfd,
                                    entry['pid'],
                                    entry['name'],
