@@ -64,14 +64,14 @@ def _build_ps_tree(pslist):
                 'name': str(task.ImageFileName),
                 'ctime': str(task.CreateTime),
                 'audit': str(task.SeAuditProcessCreationInfo.ImageFileName.Name or ''),
-                'cmd': '',
-                'path': '',
+                'cmd': None,
+                'path': None,
                 'proc': task,
                 'children': []}
         process_params = task.Peb.ProcessParameters
         if process_params:
-            proc['cmd'] = process_params.CommandLine
-            proc['path'] = process_params.ImagePathName
+            proc['cmd'] = str(process_params.CommandLine)
+            proc['path'] = str(process_params.ImagePathName)
         return proc
 
     def add_ps(task, pstree):
@@ -353,12 +353,13 @@ CheckPSTree analysis report
             match_func = lambda node, match=name: node['name'] == match
             nodes = self.find_nodes(pstree, match_func)
             for node in nodes:
+                _pass = node['path'].lower() == path.lower() if node['path'] else False
                 report.append({
                     'pid': node['pid'],
                     'ppid': node['ppid'],
                     'name': node['name'],
                     'path': node['path'],
-                    'pass': node['path'].lower() == path.lower()})
+                    'pass': _pass})
         return report
 
     def check_no_children(self, pstree):
