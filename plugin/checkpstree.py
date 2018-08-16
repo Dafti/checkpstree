@@ -348,8 +348,8 @@ CheckPSTree analysis report
 
     def check_path(self, pstree):
         report = []
-        peb_entries = self._check_config['path']
-        for name, path in peb_entries.iteritems():
+        path_entries = self._check_config['path']
+        for name, path in path_entries.iteritems():
             match_func = lambda node, match=name: node['name'] == match
             nodes = self.find_nodes(pstree, match_func)
             for node in nodes:
