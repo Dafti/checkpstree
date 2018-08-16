@@ -24,7 +24,7 @@
       "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
       "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
       "wmiprvse.exe": "C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe",
-      "ctfmon.exe": "C:\\WINDOWS\\system32\\ctfmon.exe"
+      "ctfmon.exe": "C:\\WINDOWS\\system32\\ctfmon.exe",
       "explorer.exe": "C:\\WINDOWS\\explorer.exe"
     },
     "static_pid":  {
