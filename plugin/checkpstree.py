@@ -121,7 +121,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     static_pid = 'T' if psdict[pid]['check']['static_pid'] else 'F'
                 faked = ''
                 if 'faked' in psdict[pid]['check']:
-                    static_pid = 'T' if psdict[pid]['check']['faked'] else 'F'
+                    faked = 'T' if psdict[pid]['check']['faked'] else 'F'
                 self.table_row(outfd,
                                '.' * level,
                                pid,
