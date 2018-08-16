@@ -111,7 +111,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
         'url': 'https://github.com',
         'version': '1.0'}
 
-    text_sort_column = "Pid"
+    text_sort_column = "pid"
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
@@ -125,12 +125,12 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
         def print_procs(indent, pstree):
             for proc in pstree:
-                peb = proc['peb']['fullname']
-                vad = proc['vad']['filename']
-                outfd.write("{}{} {} peb:{} vad:{}\n".format(
+                cmd = proc['cmd']
+                path = proc['path']
+                outfd.write("{}{} {} cmd:{} path:{}\n".format(
                     '.' * indent, proc['pid'], proc['name'],
-                    peb if peb is not None else '<None>',
-                    vad if vad is not None else '<None>'))
+                    cmd if cmd is not None else '<None>',
+                    path if path is not None else '<None>'))
                 print_procs(indent + 1, proc['children'])
 
         def print_unique_names(entries):
@@ -187,7 +187,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     print_entries(suspicious_entries)
             outfd.write("\n")
 
-        def print_path(entries, is_peb):
+        def print_path(entries):
             def print_entries(entries):
                 self.table_header(outfd,
                                   [('pid', '>6'),
@@ -196,16 +196,15 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    ('Pass', '>6'),
                                    ('Expected Path', '<40')])
                 for entry in entries:
-                    expected = self._check_config['vad_filename'][entry['name']]
+                    expected = self._check_config['path']
                     self.table_row(outfd,
                                    entry['pid'],
                                    entry['name'],
-                                   entry['fullname' if is_peb else 'filename'],
+                                   entry['path'],
                                    'True' if entry['pass'] else 'False',
                                    expected)
 
-            outfd.write("Path({}) Check\n".format(
-                'PEB' if is_peb else 'VAD'))
+            outfd.write("Path Check\n")
             if self._config.VERBOSE:
                 print_entries(entries)
             else:
@@ -215,12 +214,6 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 else:
                     print_entries(suspicious_entries)
             outfd.write("\n")
-
-        def print_peb_fullname(entries):
-            print_path(entries, True)
-
-        def print_vad_filename(entries):
-            print_path(entries, False)
 
         def print_no_children(entries):
             def print_entries(entries):
@@ -291,10 +284,8 @@ CheckPSTree analysis report
             print_no_children(check['no_children'])
         if 'reference_parents' in check:
             print_reference_parents(check['reference_parents'])
-        if 'peb_fullname' in check:
-            print_peb_fullname(check['peb_fullname'])
-        if 'vad_filename' in check:
-            print_vad_filename(check['vad_filename'])
+        if 'path' in check:
+            print_path(check['path'])
         if 'static_pid' in check:
             print_static_pid(check['static_pid'])
         outfd.write("""
