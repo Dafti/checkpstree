@@ -202,6 +202,22 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    '',
                                    '')
 
+        def print_no_parent(entries, psdict):
+            self.table_header(outfd,
+                              [('pid', '>6'),
+                               ('ppid', '>6'),
+                               ('Name', '<20'),
+                               ('Pass', '>6'),
+                               ('Parent name', '<20')])
+            for entry in entries:
+                parent = '' if entry['check']['no_parent'] else psdict[entry['ppid']]['name']
+                self.table_row(outfd,
+                               entry['pid'],
+                               entry['ppid'],
+                               entry['name'],
+                               'True' if entry['check']['no_parent'] else 'False',
+                               parent)
+
         def print_static_pid(entries, psdict):
             self.table_header(outfd,
                               [('pid', '>6'),
@@ -241,6 +257,7 @@ CheckPSTree analysis report
         print_pstree(psdict)
         print_funcs = {'unique_names': print_unique_names,
                        'no_children': print_no_children,
+                       'no_parent': print_no_parent,
                        'reference_parents': print_reference_parents,
                        'path': print_path,
                        'static_pid': print_static_pid}
