@@ -60,6 +60,10 @@ class CheckPSTree(common.AbstractWindowsCommand):
             'CONFIG', short_option='c', default=None,
             help='Full path to checkpstree configuration file',
             action='store', type='str')
+        config.add_option(
+            'FAKED_THRESHOLD', short_option='t', default=0.6,
+            help='Threshold used for the faked check',
+            action='store', type='float')
         self._check_config = {}
 
     def render_text(self, outfd, data):
@@ -247,7 +251,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             for entry in entries:
                 faked = ''
                 if not entry['check']['faked']:
-                    faked = difflib.get_close_matches(entry['name'], self._check_config['faked'], 1)
+                    faked = difflib.get_close_matches(entry['name'], self._check_config['faked'], 1, self._config.faked_threshold)
                 self.table_row(outfd,
                                entry['pid'],
                                entry['name'],
@@ -342,7 +346,7 @@ CheckPSTree analysis report
     def check_faked(self, psdict):
         check_entries = self._check_config['faked']
         for ps in psdict.values():
-            match = difflib.get_close_matches(ps['name'], check_entries, 1, 0.6)
+            match = difflib.get_close_matches(ps['name'], check_entries, 1, self._config.faked_threshold)
             if match:
                 if match[0] != ps['name']:
                     ps['check']['faked'] = False
