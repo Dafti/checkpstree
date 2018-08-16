@@ -343,10 +343,11 @@ CheckPSTree analysis report
         check_entries = self._check_config['faked']
         for ps in psdict.values():
             match = difflib.get_close_matches(ps['name'], check_entries, 1, 0.6)
-            if match and match[0] != ps['name']:
-                ps['check']['faked'] = False
-            else:
-                ps['check']['faked'] = True
+            if match:
+                if match[0] != ps['name']:
+                    ps['check']['faked'] = False
+                else:
+                    ps['check']['faked'] = True
 
     # Perform plugin checks. Currently it includes:
     # - unique_names
