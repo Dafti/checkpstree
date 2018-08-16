@@ -346,9 +346,9 @@ CheckPSTree analysis report
             nodes.extend(self.find_nodes(proc['children'], match_func))
         return nodes
 
-    def check_peb_fullname(self, pstree):
+    def check_path(self, pstree):
         report = []
-        peb_entries = self._check_config['peb_fullname']
+        peb_entries = self._check_config['path']
         for name, path in peb_entries.iteritems():
             match_func = lambda node, match=name: node['name'] == match
             nodes = self.find_nodes(pstree, match_func)
@@ -357,23 +357,8 @@ CheckPSTree analysis report
                     'pid': node['pid'],
                     'ppid': node['ppid'],
                     'name': node['name'],
-                    'fullname': node['peb']['fullname'],
-                    'pass': node['peb']['fullname'].lower() == path.lower()})
-        return report
-
-    def check_vad_filename(self, pstree):
-        report = []
-        vad_entries = self._check_config['vad_filename']
-        for name, path in vad_entries.iteritems():
-            match_func = lambda node, match=name: node['name'] == match
-            nodes = self.find_nodes(pstree, match_func)
-            for node in nodes:
-                report.append({
-                    'pid': node['pid'],
-                    'ppid': node['ppid'],
-                    'name': node['name'],
-                    'filename': node['vad']['filename'],
-                    'pass': node['vad']['filename'] == path})
+                    'path': node['path'],
+                    'pass': node['path'].lower() == path.lower()})
         return report
 
     def check_no_children(self, pstree):
@@ -427,10 +412,8 @@ CheckPSTree analysis report
             reports['no_children'] = self.check_no_children(pstree)
         if 'reference_parents' in self._check_config:
             reports['reference_parents'] = self.check_reference_parents(pstree)
-        if 'peb_fullname' in self._check_config:
-            reports['peb_fullname'] = self.check_peb_fullname(pstree)
-        if 'vad_filename' in self._check_config:
-            reports['vad_filename'] = self.check_vad_filename(pstree)
+        if 'path' in self._check_config:
+            reports['path'] = self.check_path(pstree)
         if 'static_pid' in self._check_config:
             reports['static_pid'] = self.check_static_pid(pstree)
         return reports
