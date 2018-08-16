@@ -25,6 +25,7 @@
 """checkpstree example file"""
 import os.path
 import json
+import difflib
 import volatility.win32.tasks as tasks
 import volatility.utils as utils
 import volatility.plugins.common as common
@@ -97,7 +98,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ("NP", "<2"),
                                ("R", "<2"),
                                ("P", "<2"),
-                               ("S", "<2")])
+                               ("S", "<2"),
+                               ("F", "<2")])
             for (pid, level) in ps_sorted:
                 unique_names = ''
                 if 'unique_names' in psdict[pid]['check']:
@@ -117,6 +119,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 static_pid = ''
                 if 'static_pid' in psdict[pid]['check']:
                     static_pid = 'T' if psdict[pid]['check']['static_pid'] else 'F'
+                faked = ''
+                if 'faked' in psdict[pid]['check']:
+                    static_pid = 'T' if psdict[pid]['check']['faked'] else 'F'
                 self.table_row(outfd,
                                '.' * level,
                                pid,
@@ -127,7 +132,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                no_parent,
                                reference_parents,
                                path,
-                               static_pid)
+                               static_pid,
+                               faked)
             outfd.write("\n")
 
         def print_unique_names(entries, psdict):
@@ -232,6 +238,22 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                'True' if entry['check']['static_pid'] else 'False',
                                expected)
 
+        def print_faked(entries, psdict):
+            self.table_header(outfd,
+                              [('pid', '>6'),
+                               ('Name', '<20'),
+                               ('Pass', '>6'),
+                               ('Faked name', '<20')])
+            for entry in entries:
+                faked = ''
+                if not entry['check']['faked']:
+                    faked = difflib.get_close_matches(entry['name'], self._check_config['faked'], 1)
+                self.table_row(outfd,
+                               entry['pid'],
+                               entry['name'],
+                               'True' if entry['check']['faked'] else 'False',
+                               faked[0])
+
         def print_check(print_func, check_name, psdict):
             outfd.write("{} Check\n".format(check_name))
             entries = [ps for ps in psdict.values() if 'check' in ps and check_name in ps['check']]
@@ -260,7 +282,8 @@ CheckPSTree analysis report
                        'no_parent': print_no_parent,
                        'reference_parents': print_reference_parents,
                        'path': print_path,
-                       'static_pid': print_static_pid}
+                       'static_pid': print_static_pid,
+                       'faked': print_faked}
         for key in self._check_config.keys():
             if key in print_funcs.keys():
                 print_check(print_funcs[key], key, psdict)
@@ -316,6 +339,15 @@ CheckPSTree analysis report
                 check_pass = ps['pid'] == int(check_entries[ps['name']])
                 ps['check']['static_pid'] = check_pass
 
+    def check_faked(self, psdict):
+        check_entries = self._check_config['faked']
+        for ps in psdict.values():
+            match = difflib.get_close_matches(ps['name'], check_entries, 1, 0.6)
+            if match and match[0] != ps['name']:
+                ps['check']['faked'] = False
+            else:
+                ps['check']['faked'] = True
+
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - no_children
@@ -323,6 +355,7 @@ CheckPSTree analysis report
     # - reference_parents
     # - path
     # - static_pid
+    # - faked
     def checking(self, psdict):
         # For every check in the configuration perform the correspondent check.
         check_funcs = {'unique_names': self.check_unique_names,
@@ -330,7 +363,8 @@ CheckPSTree analysis report
                        'no_parent': self.check_no_parent,
                        'reference_parents': self.check_reference_parents,
                        'path': self.check_path,
-                       'static_pid': self.check_static_pid}
+                       'static_pid': self.check_static_pid,
+                       'faked': self.check_faked}
         for key in self._check_config.keys():
             if key in check_funcs.keys():
                 check_funcs[key](psdict)

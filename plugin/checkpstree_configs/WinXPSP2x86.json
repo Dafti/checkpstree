@@ -33,10 +33,11 @@
       "ctfmon.exe": "C:\\WINDOWS\\system32\\ctfmon.exe",
       "explorer.exe": "C:\\WINDOWS\\explorer.exe"
     },
-    "static_pid":  {
+    "static_pid": {
       "System": "4"
     },
-    "user_name":  {
+    "faked": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe","ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "svchost.exe", "winlogon.exe", "cmd.exe", "csrss.exe"],
+    "user_name": {
       "smss.exe": ["NT AUTHORITY\\SYSTEM"],
       "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
       "services.exe": ["NT AUTHORITY\\SYSTEM"],
