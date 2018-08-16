@@ -63,59 +63,15 @@ def _build_ps_tree(pslist):
                 'ppid': int(task.InheritedFromUniqueProcessId),
                 'name': str(task.ImageFileName),
                 'ctime': str(task.CreateTime),
+                'audit': str(task.SeAuditProcessCreationInfo.ImageFileName.Name or ''),
+                'cmd': None,
+                'path': None,
                 'proc': task,
                 'children': []}
-        peb = {'cmdline': None,
-               'image_baseaddr': Address(0),
-               'baseaddr': Address(0),
-               'size': Hex(0),
-               'basename': None,
-               'fullname': None}
-        vad = {'filename': '<No VAD>',
-               'baseaddr': Address(0),
-               'size': Hex(0),
-               'protection': '<No VAD>',
-               'tag': '<No VAD>'}
-        if task.Peb:
-            peb['cmdline'] = task.Peb.ProcessParameters.CommandLine
-            mods = task.get_load_modules()
-            for mod in mods:
-                ext = os.path.splitext(str(mod.FullDllName))[1].lower()
-                if ext == '.exe':
-                    peb['image_baseaddr'] = Address(task.Peb.ImageBaseAddress)
-                    peb['baseaddr'] = Address(mod.DllBase)
-                    peb['size'] = Hex(0)
-                    peb['basename'] = str(mod.BaseDllName)
-                    peb['fullname'] = str(mod.FullDllName)
-                    break
-            vads = task.get_vads(vad_filter=task._mapped_file_filter)
-            for entry, addr_space in vads:
-                ext = ""
-                vad_found = False
-                if obj.Object("_IMAGE_DOS_HEADER",
-                              offset=entry.Start,
-                              vm=addr_space).e_magic != 0x5A4D:
-                    continue
-                if str(entry.FileObject.FileName or ''):
-                    ext = os.path.splitext(str(entry.FileObject.FileName))[1]
-                    ext = ext.lower()
-                tmp_peb_iba = task.Peb.ImageBaseAddress
-                if (ext == ".exe") or (entry.Start == tmp_peb_iba):
-                    vad['filename'] = str(entry.FileObject.FileName)
-                    vad['baseaddr'] = Address(entry.Start)
-                    vad['size'] = Hex(entry.End - entry.Start)
-                    tmp_vad_fp = entry.VadFlags.Protection.v()
-                    tmp_vad_fp = vadinfo.PROTECT_FLAGS.get(tmp_vad_fp)
-                    vad['protection'] = str(tmp_vad_fp or '')
-                    vad['tag'] = str(entry.Tag or '')
-                    vad_found = True
-                    break
-            if not vad_found:
-                vad['filename'] = 'NA'
-                vad['protection'] = 'NA'
-                vad['tag'] = 'NA'
-        proc['peb'] = peb
-        proc['vad'] = vad
+        process_params = task.Peb.ProcessParameters
+        if process_params:
+            proc['cmd'] = str(process_params.CommandLine)
+            proc['path'] = str(process_params.ImagePathName)
         return proc
 
     def add_ps(task, pstree):
@@ -155,7 +111,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
         'url': 'https://github.com',
         'version': '1.0'}
 
-    text_sort_column = "Pid"
+    text_sort_column = "pid"
 
     def __init__(self, config, *args, **kwargs):
         common.AbstractWindowsCommand.__init__(self, config, *args, **kwargs)
@@ -169,12 +125,12 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
         def print_procs(indent, pstree):
             for proc in pstree:
-                peb = proc['peb']['fullname']
-                vad = proc['vad']['filename']
-                outfd.write("{}{} {} peb:{} vad:{}\n".format(
+                cmd = proc['cmd']
+                path = proc['path']
+                outfd.write("{}{} {} cmd:{} path:{}\n".format(
                     '.' * indent, proc['pid'], proc['name'],
-                    peb if peb is not None else '<None>',
-                    vad if vad is not None else '<None>'))
+                    cmd if cmd is not None else '<None>',
+                    path if path is not None else '<None>'))
                 print_procs(indent + 1, proc['children'])
 
         def print_unique_names(entries):
@@ -231,7 +187,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     print_entries(suspicious_entries)
             outfd.write("\n")
 
-        def print_path(entries, is_peb):
+        def print_path(entries):
             def print_entries(entries):
                 self.table_header(outfd,
                                   [('pid', '>6'),
@@ -240,16 +196,15 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    ('Pass', '>6'),
                                    ('Expected Path', '<40')])
                 for entry in entries:
-                    expected = self._check_config['vad_filename'][entry['name']]
+                    expected = self._check_config['path']
                     self.table_row(outfd,
                                    entry['pid'],
                                    entry['name'],
-                                   entry['fullname' if is_peb else 'filename'],
+                                   entry['path'],
                                    'True' if entry['pass'] else 'False',
                                    expected)
 
-            outfd.write("Path({}) Check\n".format(
-                'PEB' if is_peb else 'VAD'))
+            outfd.write("Path Check\n")
             if self._config.VERBOSE:
                 print_entries(entries)
             else:
@@ -259,12 +214,6 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 else:
                     print_entries(suspicious_entries)
             outfd.write("\n")
-
-        def print_peb_fullname(entries):
-            print_path(entries, True)
-
-        def print_vad_filename(entries):
-            print_path(entries, False)
 
         def print_no_children(entries):
             def print_entries(entries):
@@ -335,10 +284,8 @@ CheckPSTree analysis report
             print_no_children(check['no_children'])
         if 'reference_parents' in check:
             print_reference_parents(check['reference_parents'])
-        if 'peb_fullname' in check:
-            print_peb_fullname(check['peb_fullname'])
-        if 'vad_filename' in check:
-            print_vad_filename(check['vad_filename'])
+        if 'path' in check:
+            print_path(check['path'])
         if 'static_pid' in check:
             print_static_pid(check['static_pid'])
         outfd.write("""
@@ -390,34 +337,20 @@ CheckPSTree analysis report
             nodes.extend(self.find_nodes(proc['children'], match_func))
         return nodes
 
-    def check_peb_fullname(self, pstree):
+    def check_path(self, pstree):
         report = []
-        peb_entries = self._check_config['peb_fullname']
-        for name, path in peb_entries.iteritems():
+        path_entries = self._check_config['path']
+        for name, path in path_entries.iteritems():
             match_func = lambda node, match=name: node['name'] == match
             nodes = self.find_nodes(pstree, match_func)
             for node in nodes:
+                _pass = node['path'].lower() == path.lower() if node['path'] else False
                 report.append({
                     'pid': node['pid'],
                     'ppid': node['ppid'],
                     'name': node['name'],
-                    'fullname': node['peb']['fullname'],
-                    'pass': node['peb']['fullname'].lower() == path.lower()})
-        return report
-
-    def check_vad_filename(self, pstree):
-        report = []
-        vad_entries = self._check_config['vad_filename']
-        for name, path in vad_entries.iteritems():
-            match_func = lambda node, match=name: node['name'] == match
-            nodes = self.find_nodes(pstree, match_func)
-            for node in nodes:
-                report.append({
-                    'pid': node['pid'],
-                    'ppid': node['ppid'],
-                    'name': node['name'],
-                    'filename': node['vad']['filename'],
-                    'pass': node['vad']['filename'] == path})
+                    'path': node['path'],
+                    'pass': _pass})
         return report
 
     def check_no_children(self, pstree):
@@ -471,10 +404,8 @@ CheckPSTree analysis report
             reports['no_children'] = self.check_no_children(pstree)
         if 'reference_parents' in self._check_config:
             reports['reference_parents'] = self.check_reference_parents(pstree)
-        if 'peb_fullname' in self._check_config:
-            reports['peb_fullname'] = self.check_peb_fullname(pstree)
-        if 'vad_filename' in self._check_config:
-            reports['vad_filename'] = self.check_vad_filename(pstree)
+        if 'path' in self._check_config:
+            reports['path'] = self.check_path(pstree)
         if 'static_pid' in self._check_config:
             reports['static_pid'] = self.check_static_pid(pstree)
         return reports
