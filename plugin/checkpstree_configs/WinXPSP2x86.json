@@ -12,7 +12,7 @@
       "wscntfy.exe": "svchost.exe",
       "wuauclt.exe": "svchost.exe",
       "ctfmon.exe": "explorer.exe",
-      "svchost.exe": "sevices.exe",
+      "svchost.exe": "services.exe",
       "spoolsv.exe": "services.exe",
       "alg.exe": "services.exe",
       "wpabaln.exe": "winlogon.exe",
