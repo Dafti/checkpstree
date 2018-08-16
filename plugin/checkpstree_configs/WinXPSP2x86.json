@@ -15,7 +15,7 @@
       "LogonUI.exe" : "winlogon.exe",
       "rdpclip.exe" : "services.exe"
     },
-    "peb_fullname": {
+    "path": {
       "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
       "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
       "lsm.exe": "C:\\WINDOWS\\system32\\lsm.exe",
@@ -29,21 +29,6 @@
       "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
       "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
       "explorer.exe": "C:\\WINDOWS\\explorer.exe"
-    },
-    "vad_filename": {
-      "wuauclt.exe": "\\WINDOWS\\system32\\wuauclt.exe",
-      "svchost.exe": "\\WINDOWS\\system32\\svchost.exe",
-      "lsm.exe": "\\WINDOWS\\system32\\lsm.exe",
-      "taskhost.exe": "\\WINDOWS\\system32\\taskhost.exe",
-      "wininit.exe": "\\WINDOWS\\system32\\wininit.exe",
-      "services.exe": "\\WINDOWS\\system32\\services.exe",
-      "winlogon.exe": "\\WINDOWS\\system32\\winlogon.exe",
-      "csrss.exe": "\\WINDOWS\\system32\\csrss.exe",
-      "smss.exe": "\\WINDOWS\\system32\\smss.exe",
-      "spoolsv.exe": "\\WINDOWS\\system32\\spoolsv.exe",
-      "alg.exe": "\\WINDOWS\\system32\\alg.exe",
-      "lsass.exe": "\\WINDOWS\\system32\\lsass.exe",
-      "explorer.exe": "\\WINDOWS\\explorer.exe"
     },
     "static_pid":  {
       "System": "4"
