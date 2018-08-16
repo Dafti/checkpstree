@@ -202,6 +202,22 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    '',
                                    '')
 
+        def print_no_parent(entries, psdict):
+            self.table_header(outfd,
+                              [('pid', '>6'),
+                               ('ppid', '>6'),
+                               ('Name', '<20'),
+                               ('Pass', '>6'),
+                               ('Parent name', '<20')])
+            for entry in entries:
+                parent = '' if entry['check']['no_parent'] else psdict[entry['ppid']]['name']
+                self.table_row(outfd,
+                               entry['pid'],
+                               entry['ppid'],
+                               entry['name'],
+                               'True' if entry['check']['no_parent'] else 'False',
+                               parent)
+
         def print_static_pid(entries, psdict):
             self.table_header(outfd,
                               [('pid', '>6'),
@@ -241,6 +257,7 @@ CheckPSTree analysis report
         print_pstree(psdict)
         print_funcs = {'unique_names': print_unique_names,
                        'no_children': print_no_children,
+                       'no_parent': print_no_parent,
                        'reference_parents': print_reference_parents,
                        'path': print_path,
                        'static_pid': print_static_pid}
@@ -263,6 +280,20 @@ CheckPSTree analysis report
                     for pid in pids:
                         psdict[pid]['check']['unique_names'] = False
 
+    def check_no_children(self, psdict):
+        check_entries = self._check_config['no_children']
+        for ps in psdict.values():
+            if ps['name'] in check_entries:
+                children = [x['pid'] for x in psdict.values() if x['ppid'] == ps['pid']]
+                ps['check']['no_children'] = not children
+
+    def check_no_parent(self, psdict):
+        check_entries = self._check_config['no_parent']
+        for ps in psdict.values():
+            if ps['name'] in check_entries:
+                parent = [x['pid'] for x in psdict.values() if x['pid'] == ps['ppid']]
+                ps['check']['no_parent'] = not parent
+
     def check_reference_parents(self, psdict):
         check_entries = self._check_config['reference_parents']
         for ps in psdict.values():
@@ -278,13 +309,6 @@ CheckPSTree analysis report
                 expected_path = check_entries[ps['name']].lower()
                 ps['check']['path'] = path == expected_path
 
-    def check_no_children(self, psdict):
-        check_entries = self._check_config['no_children']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                children = [x['pid'] for x in psdict.values() if x['ppid'] == ps['pid']]
-                ps['check']['no_children'] = not children
-
     def check_static_pid(self, psdict):
         check_entries = self._check_config['static_pid']
         for ps in psdict.values():
@@ -295,21 +319,21 @@ CheckPSTree analysis report
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - no_children
+    # - no_parent
     # - reference_parents
     # - path
     # - static_pid
     def checking(self, psdict):
         # For every check in the configuration perform the correspondent check.
-        if 'unique_names' in self._check_config:
-            self.check_unique_names(psdict)
-        if 'no_children' in self._check_config:
-            self.check_no_children(psdict)
-        if 'reference_parents' in self._check_config:
-            self.check_reference_parents(psdict)
-        if 'path' in self._check_config:
-            self.check_path(psdict)
-        if 'static_pid' in self._check_config:
-            self.check_static_pid(psdict)
+        check_funcs = {'unique_names': self.check_unique_names,
+                       'no_children': self.check_no_children,
+                       'no_parent': self.check_no_parent,
+                       'reference_parents': self.check_reference_parents,
+                       'path': self.check_path,
+                       'static_pid': self.check_static_pid}
+        for key in self._check_config.keys():
+            if key in check_funcs.keys():
+                check_funcs[key](psdict)
 
     # Check the configuration files
     # If no configuration was provided we try to load a configuration file from
