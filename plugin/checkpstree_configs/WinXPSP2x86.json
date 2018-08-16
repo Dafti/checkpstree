@@ -2,7 +2,7 @@
   {
     "unique_names": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe","ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe"],
     "no_children":  ["lsass.exe", "csrss.exe","alg.exe", "wpabaln.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "ctfmon.exe"],
-    "no_parent":    ["System","explorer.exe", "svchost.exe", "alg.exe", "wpabaln.exe", "spoolsv.exe"],
+    "no_parent":    ["System","explorer.exe"],
     "reference_parents": {
       "winlogon.exe": "smss.exe",
       "csrss.exe": "smss.exe",
@@ -11,6 +11,10 @@
       "lsass.exe" : "winlogon.exe",
       "wscntfy.exe": "svchost.exe",
       "ctfmon.exe": "explorer.exe",
+      "svchost.exe": "sevices.exe",
+      "spoolsv.exe": "services.exe",
+      "alg.exe": "services.exe",
+      "wpabaln.exe": "winlogon.exe",
       "wmiprvse.exe": "svchost.exe"
     },
     "path": {
