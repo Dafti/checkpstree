@@ -263,6 +263,20 @@ CheckPSTree analysis report
                     for pid in pids:
                         psdict[pid]['check']['unique_names'] = False
 
+    def check_no_children(self, psdict):
+        check_entries = self._check_config['no_children']
+        for ps in psdict.values():
+            if ps['name'] in check_entries:
+                children = [x['pid'] for x in psdict.values() if x['ppid'] == ps['pid']]
+                ps['check']['no_children'] = not children
+
+    def check_no_parent(self, psdict):
+        check_entries = self._check_config['no_parent']
+        for ps in psdict.values():
+            if ps['name'] in check_entries:
+                parent = [x['pid'] for x in psdict.values() if x['pid'] == ps['ppid']]
+                ps['check']['no_parent'] = not parent
+
     def check_reference_parents(self, psdict):
         check_entries = self._check_config['reference_parents']
         for ps in psdict.values():
@@ -278,13 +292,6 @@ CheckPSTree analysis report
                 expected_path = check_entries[ps['name']].lower()
                 ps['check']['path'] = path == expected_path
 
-    def check_no_children(self, psdict):
-        check_entries = self._check_config['no_children']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                children = [x['pid'] for x in psdict.values() if x['ppid'] == ps['pid']]
-                ps['check']['no_children'] = not children
-
     def check_static_pid(self, psdict):
         check_entries = self._check_config['static_pid']
         for ps in psdict.values():
@@ -295,6 +302,7 @@ CheckPSTree analysis report
     # Perform plugin checks. Currently it includes:
     # - unique_names
     # - no_children
+    # - no_parent
     # - reference_parents
     # - path
     # - static_pid
@@ -302,6 +310,7 @@ CheckPSTree analysis report
         # For every check in the configuration perform the correspondent check.
         check_funcs = {'unique_names': self.check_unique_names,
                        'no_children': self.check_no_children,
+                       'no_parent': self.check_no_parent,
                        'reference_parents': self.check_reference_parents,
                        'path': self.check_path,
                        'static_pid': self.check_static_pid}
