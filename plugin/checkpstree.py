@@ -30,10 +30,7 @@ import volatility.win32.tasks as tasks
 import volatility.utils as utils
 import volatility.plugins.common as common
 import volatility.cache as cache
-import volatility.obj as obj
 import volatility.debug as debug
-from volatility.renderers.basic import Address, Hex
-import volatility.plugins.vadinfo as vadinfo
 
 #pylint: disable-msg=C0111
 
@@ -70,7 +67,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
         def sort_processes(psdict):
             def add_processes(ps_sorted, ps_level, ppid, level):
-                pids = [ps['pid'] for ps in psdict.values() if ps['ppid'] == ppid]
+                pids = [ps['pid']
+                        for ps in psdict.values()
+                        if ps['ppid'] == ppid]
                 for pid in pids:
                     ps_sorted.append(pid)
                     ps_level.append(level)
@@ -79,7 +78,10 @@ class CheckPSTree(common.AbstractWindowsCommand):
             ps_sorted = []
             ps_level = []
             while len(ps_sorted) != len(psdict):
-                roots = [ps['pid'] for ps in psdict.values() if ps['ppid'] not in psdict.keys() and ps['pid'] not in ps_sorted]
+                roots = [ps['pid']
+                         for ps in psdict.values()
+                         if (ps['ppid'] not in psdict.keys() and
+                             ps['pid'] not in ps_sorted)]
                 if not roots:
                     debug.warning("No root found")
                     break
@@ -90,6 +92,14 @@ class CheckPSTree(common.AbstractWindowsCommand):
             return zip(ps_sorted, ps_level)
 
         def print_pstree(psdict):
+            def check_output(psdict, pid, check_name):
+                local check = psdict[pid]['check']
+                return (''
+                        if not check_name in check
+                        else ('T'
+                              if check[check_name]
+                              else 'F'))
+
             outfd.write("PSTree\n")
             ps_sorted = sort_processes(psdict)
             self.table_header(outfd,
@@ -105,39 +115,18 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ("S", "<2"),
                                ("F", "<2")])
             for (pid, level) in ps_sorted:
-                unique_names = ''
-                if 'unique_names' in psdict[pid]['check']:
-                    unique_names = 'T' if psdict[pid]['check']['unique_names'] else 'F'
-                no_children = ''
-                if 'no_children' in psdict[pid]['check']:
-                    no_children = 'T' if psdict[pid]['check']['no_children'] else 'F'
-                no_parent = ''
-                if 'no_parent' in psdict[pid]['check']:
-                    no_parent = 'T' if psdict[pid]['check']['no_parent'] else 'F'
-                reference_parents = ''
-                if 'reference_parents' in psdict[pid]['check']:
-                    reference_parents = 'T' if psdict[pid]['check']['reference_parents'] else 'F'
-                path = ''
-                if 'path' in psdict[pid]['check']:
-                    path = 'T' if psdict[pid]['check']['path'] else 'F'
-                static_pid = ''
-                if 'static_pid' in psdict[pid]['check']:
-                    static_pid = 'T' if psdict[pid]['check']['static_pid'] else 'F'
-                faked = ''
-                if 'faked' in psdict[pid]['check']:
-                    faked = 'T' if psdict[pid]['check']['faked'] else 'F'
                 self.table_row(outfd,
                                '.' * level,
                                pid,
                                psdict[pid]['ppid'],
                                psdict[pid]['name'],
-                               unique_names,
-                               no_children,
-                               no_parent,
-                               reference_parents,
-                               path,
-                               static_pid,
-                               faked)
+                               check_output(psdict, pid, 'unique_names'),
+                               check_output(psdict, pid, 'no_children'),
+                               check_output(psdict, pid, 'no_parent'),
+                               check_output(psdict, pid, 'reference_parents'),
+                               check_output(psdict, pid, 'path'),
+                               check_output(psdict, pid, 'static_pid'),
+                               check_output(psdict, pid, 'faked'))
             outfd.write("\n")
 
         def print_unique_names(entries, psdict):
@@ -146,11 +135,15 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ("Count", ">6"),
                                ("Pass", ">6")])
             for entry in entries:
-                count = len([x for x in psdict.values() if x['name'] == entry['name']])
+                count = len([x
+                             for x in psdict.values()
+                             if x['name'] == entry['name']])
                 self.table_row(outfd,
                                entry['name'],
                                count,
-                               'True' if entry['check']['unique_names'] else 'False')
+                               'True'
+                               if entry['check']['unique_names']
+                               else 'False')
 
         def print_reference_parents(entries, psdict):
             self.table_header(outfd,
@@ -168,7 +161,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                entry['pid'],
                                psdict[entry['ppid']]['name'],
                                entry['ppid'],
-                               'True' if entry['check']['reference_parents'] else 'False',
+                               'True'
+                               if entry['check']['reference_parents']
+                               else 'False',
                                expected)
 
         def print_path(entries, psdict):
@@ -196,7 +191,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ('Name_child', '<20')])
             for entry in entries:
                 if not entry['check']['no_children']:
-                    children = [x['pid'] for x in psdict.values() if x['ppid'] == entry['pid']]
+                    children = [x['pid']
+                                for x in psdict.values()
+                                if x['ppid'] == entry['pid']]
                     for pid in children:
                         self.table_row(outfd,
                                        entry['pid'],
@@ -220,12 +217,16 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ('Pass', '>6'),
                                ('Parent name', '<20')])
             for entry in entries:
-                parent = '' if entry['check']['no_parent'] else psdict[entry['ppid']]['name']
+                parent = (''
+                          if entry['check']['no_parent']
+                          else psdict[entry['ppid']]['name'])
                 self.table_row(outfd,
                                entry['pid'],
                                entry['ppid'],
                                entry['name'],
-                               'True' if entry['check']['no_parent'] else 'False',
+                               'True'
+                               if entry['check']['no_parent']
+                               else 'False',
                                parent)
 
         def print_static_pid(entries, psdict):
@@ -239,7 +240,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 self.table_row(outfd,
                                entry['pid'],
                                entry['name'],
-                               'True' if entry['check']['static_pid'] else 'False',
+                               'True'
+                               if entry['check']['static_pid']
+                               else 'False',
                                expected)
 
         def print_faked(entries, psdict):
@@ -248,10 +251,15 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ('Name', '<20'),
                                ('Pass', '>6'),
                                ('Faked name', '<20')])
+            threshold = self._config.faked_threshold
+            check_entries = self._check_config['faked']
             for entry in entries:
                 faked = ''
                 if not entry['check']['faked']:
-                    faked = difflib.get_close_matches(entry['name'], self._check_config['faked'], 1, self._config.faked_threshold)
+                    faked = difflib.get_close_matches(entry['name'],
+                                                      check_entries,
+                                                      1,
+                                                      threshold)
                 self.table_row(outfd,
                                entry['pid'],
                                entry['name'],
@@ -260,14 +268,17 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
         def print_check(print_func, check_name, psdict):
             outfd.write("{} Check\n".format(check_name))
-            entries = [ps for ps in psdict.values() if 'check' in ps and check_name in ps['check']]
+            entries = [ps for ps in psdict.values()
+                       if 'check' in ps and check_name in ps['check']]
             if not entries:
-                outfd.write("> No suspicious entries found (nothing inspected)\n")
+                outfd.write(
+                    "> No suspicious entries found (nothing inspected)\n")
             else:
                 if self._config.VERBOSE:
                     print_func(entries, psdict)
                 else:
-                    suspicious_entries = [ps for ps in entries if not ps['check'][check_name]]
+                    suspicious_entries = [ps for ps in entries
+                                          if not ps['check'][check_name]]
                     if not suspicious_entries:
                         outfd.write("> No suspicious entries found\n")
                     else:
@@ -309,49 +320,56 @@ CheckPSTree analysis report
 
     def check_no_children(self, psdict):
         check_entries = self._check_config['no_children']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                children = [x['pid'] for x in psdict.values() if x['ppid'] == ps['pid']]
-                ps['check']['no_children'] = not children
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                children = [x['pid'] for x in psdict.values()
+                            if x['ppid'] == proc['pid']]
+                proc['check']['no_children'] = not children
 
     def check_no_parent(self, psdict):
         check_entries = self._check_config['no_parent']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                parent = [x['pid'] for x in psdict.values() if x['pid'] == ps['ppid']]
-                ps['check']['no_parent'] = not parent
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                parent = [x['pid'] for x in psdict.values()
+                          if x['pid'] == proc['ppid']]
+                proc['check']['no_parent'] = not parent
 
     def check_reference_parents(self, psdict):
         check_entries = self._check_config['reference_parents']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                check_pass = psdict[ps['ppid']]['name'] == check_entries[ps['name']]
-                ps['check']['reference_parents'] = check_pass
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                expected = check_entries[proc['name']]
+                parent = psdict[proc['ppid']]['name']
+                check_pass = parent == expected
+                proc['check']['reference_parents'] = check_pass
 
     def check_path(self, psdict):
         check_entries = self._check_config['path']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                path = ps['path'].lower() if ps['path'] else ""
-                expected_path = check_entries[ps['name']].lower()
-                ps['check']['path'] = path == expected_path
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                path = proc['path'].lower() if proc['path'] else ""
+                expected_path = check_entries[proc['name']].lower()
+                proc['check']['path'] = path == expected_path
 
     def check_static_pid(self, psdict):
         check_entries = self._check_config['static_pid']
-        for ps in psdict.values():
-            if ps['name'] in check_entries.keys():
-                check_pass = ps['pid'] == int(check_entries[ps['name']])
-                ps['check']['static_pid'] = check_pass
+        for proc in psdict.values():
+            if proc['name'] in check_entries.keys():
+                check_pass = proc['pid'] == int(check_entries[proc['name']])
+                proc['check']['static_pid'] = check_pass
 
     def check_faked(self, psdict):
         check_entries = self._check_config['faked']
-        for ps in psdict.values():
-            match = difflib.get_close_matches(ps['name'], check_entries, 1, self._config.faked_threshold)
+        for proc in psdict.values():
+            match = difflib.get_close_matches(proc['name'],
+                                              check_entries,
+                                              1,
+                                              self._config.faked_threshold)
             if match:
-                if match[0] != ps['name']:
-                    ps['check']['faked'] = False
+                if match[0] != proc['name']:
+                    proc['check']['faked'] = False
                 else:
-                    ps['check']['faked'] = True
+                    proc['check']['faked'] = True
 
     # Perform plugin checks. Currently it includes:
     # - unique_names
@@ -415,16 +433,17 @@ CheckPSTree analysis report
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
         psdict = {}
-        for ps in pslist:
-            proc = {'pid': int(ps.UniqueProcessId),
-                    'ppid': int(ps.InheritedFromUniqueProcessId),
-                    'name': str(ps.ImageFileName),
-                    'ctime': str(ps.CreateTime),
-                    'audit': str(ps.SeAuditProcessCreationInfo.ImageFileName.Name or ''),
+        for rawproc in pslist:
+            audit = rawproc.SeAuditProcessCreationInfo.ImageFileName.Name or ''
+            proc = {'pid': int(rawproc.UniqueProcessId),
+                    'ppid': int(rawproc.InheritedFromUniqueProcessId),
+                    'name': str(rawproc.ImageFileName),
+                    'ctime': str(rawproc.CreateTime),
+                    'audit': str(audit),
                     'cmd': None,
                     'path': None,
                     'check': {}}
-            process_params = ps.Peb.ProcessParameters
+            process_params = rawproc.Peb.ProcessParameters
             if process_params:
                 proc['cmd'] = str(process_params.CommandLine)
                 proc['path'] = str(process_params.ImagePathName)
