@@ -93,7 +93,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
         def print_pstree(psdict):
             def check_output(psdict, pid, check_name):
-                local check = psdict[pid]['check']
+                check = psdict[pid]['check']
                 return (''
                         if not check_name in check
                         else ('T'
