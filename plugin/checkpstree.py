@@ -134,6 +134,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                        check_output(psdict, pid, 'faked')]
                 table_rows.append(row)
             print_volatility_table(table_header, table_rows)
+            outfd.write("\n")
 
         def print_unique_names(entries, psdict):
             table_header = ['Name', 'Count', 'Pass']
