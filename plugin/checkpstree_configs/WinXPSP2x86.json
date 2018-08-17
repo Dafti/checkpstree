@@ -37,6 +37,7 @@
       "System": "4"
     },
     "faked": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe","ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "svchost.exe", "winlogon.exe", "cmd.exe", "csrss.exe"],
+    "suspicious":["adaware.exe", "alevir.exe"],
     "user_name": {
       "smss.exe": ["NT AUTHORITY\\SYSTEM"],
       "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
