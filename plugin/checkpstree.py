@@ -234,7 +234,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             threshold = self._config.faked_threshold
             check_entries = self._check_config['faked']
             for entry in entries:
-                faked = ''
+                faked = ['']
                 if not entry['check']['faked']:
                     faked = difflib.get_close_matches(entry['name'],
                                                       check_entries,
