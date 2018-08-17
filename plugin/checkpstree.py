@@ -65,7 +65,22 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
     def render_text(self, outfd, data):
 
-        def sort_processes(psdict):
+        def print_volatility_table(header, rows):
+            # compute lengths
+            lengths = map(lambda x: len(str(x)),
+                          header)
+            for row in rows:
+                lengths = map(lambda x, y: max(len(str(x)), y),
+                              row, lengths)
+            lengths = map(lambda x: x + 1, lengths)
+            outheader = map(lambda x, y: (x, '<{}'.format(y)),
+                            header, lengths)
+            self.table_header(outfd, outheader)
+            for row in rows:
+                self.table_row(outfd, *row)
+
+        def print_pstree(psdict):
+
             def add_processes(ps_sorted, ps_level, ppid, level):
                 pids = [ps['pid']
                         for ps in psdict.values()
@@ -75,23 +90,23 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     ps_level.append(level)
                     add_processes(ps_sorted, ps_level, pid, level + 1)
 
-            ps_sorted = []
-            ps_level = []
-            while len(ps_sorted) != len(psdict):
-                roots = [ps['pid']
-                         for ps in psdict.values()
-                         if (ps['ppid'] not in psdict.keys() and
-                             ps['pid'] not in ps_sorted)]
-                if not roots:
-                    debug.warning("No root found")
-                    break
-                root = roots[0]
-                ps_sorted.append(root)
-                ps_level.append(0)
-                add_processes(ps_sorted, ps_level, root, 1)
-            return zip(ps_sorted, ps_level)
+            def sort_processes(psdict):
+                ps_sorted = []
+                ps_level = []
+                while len(ps_sorted) != len(psdict):
+                    roots = [ps['pid']
+                             for ps in psdict.values()
+                             if (ps['ppid'] not in psdict.keys() and
+                                 ps['pid'] not in ps_sorted)]
+                    if not roots:
+                        debug.warning("No root found")
+                        break
+                    root = roots[0]
+                    ps_sorted.append(root)
+                    ps_level.append(0)
+                    add_processes(ps_sorted, ps_level, root, 1)
+                return zip(ps_sorted, ps_level)
 
-        def print_pstree(psdict):
             def check_output(psdict, pid, check_name):
                 check = psdict[pid]['check']
                 return (''
@@ -102,155 +117,120 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
             outfd.write("PSTree\n")
             ps_sorted = sort_processes(psdict)
-            self.table_header(outfd,
-                              [("Level", "<8"),
-                               ("pid", ">6"),
-                               ("ppid", ">6"),
-                               ("Name", "<20"),
-                               ("U", "<2"),
-                               ("NC", "<2"),
-                               ("NP", "<2"),
-                               ("R", "<2"),
-                               ("P", "<2"),
-                               ("S", "<2"),
-                               ("F", "<2")])
+            table_header = ['Level', 'pid', 'ppid', 'Name',
+                            'U', 'NC', 'NP', 'R', 'P', 'S', 'F']
+            table_rows = []
             for (pid, level) in ps_sorted:
-                self.table_row(outfd,
-                               '.' * level,
-                               pid,
-                               psdict[pid]['ppid'],
-                               psdict[pid]['name'],
-                               check_output(psdict, pid, 'unique_names'),
-                               check_output(psdict, pid, 'no_children'),
-                               check_output(psdict, pid, 'no_parent'),
-                               check_output(psdict, pid, 'reference_parents'),
-                               check_output(psdict, pid, 'path'),
-                               check_output(psdict, pid, 'static_pid'),
-                               check_output(psdict, pid, 'faked'))
-            outfd.write("\n")
+                row = ['.' * level,
+                       pid,
+                       psdict[pid]['ppid'],
+                       psdict[pid]['name'],
+                       check_output(psdict, pid, 'unique_names'),
+                       check_output(psdict, pid, 'no_children'),
+                       check_output(psdict, pid, 'no_parent'),
+                       check_output(psdict, pid, 'reference_parents'),
+                       check_output(psdict, pid, 'path'),
+                       check_output(psdict, pid, 'static_pid'),
+                       check_output(psdict, pid, 'faked')]
+                table_rows.append(row)
+            print_volatility_table(table_header, table_rows)
 
         def print_unique_names(entries, psdict):
-            self.table_header(outfd,
-                              [("Name", "<50"),
-                               ("Count", ">6"),
-                               ("Pass", ">6")])
+            table_header = ['Name', 'Count', 'Pass']
+            table_rows = []
             for entry in entries:
                 count = len([x
                              for x in psdict.values()
                              if x['name'] == entry['name']])
-                self.table_row(outfd,
-                               entry['name'],
-                               count,
-                               'True'
-                               if entry['check']['unique_names']
-                               else 'False')
+                table_rows.append([entry['name'],
+                                   count,
+                                   'True'
+                                   if entry['check']['unique_names']
+                                   else 'False'])
+            print_volatility_table(table_header, table_rows)
 
         def print_reference_parents(entries, psdict):
-            self.table_header(outfd,
-                              [('Name', '<50'),
-                               ('pid', '>6'),
-                               ('Parent', '<50'),
-                               ('ppid', '>6'),
-                               ('Pass', '>6'),
-                               ('Expected Parent', '<50')])
+            table_header = ['Name', 'pid', 'Parent', 'ppid', 'Pass',
+                            'Expected Parent']
+            table_rows = []
             ref_parents = self._check_config['reference_parents']
             for entry in entries:
-                expected = ref_parents[entry['name']]
-                self.table_row(outfd,
-                               entry['name'],
-                               entry['pid'],
-                               psdict[entry['ppid']]['name'],
-                               entry['ppid'],
-                               'True'
-                               if entry['check']['reference_parents']
-                               else 'False',
-                               expected)
+                table_rows.append([entry['name'],
+                                   entry['pid'],
+                                   psdict[entry['ppid']]['name'],
+                                   entry['ppid'],
+                                   'True'
+                                   if entry['check']['reference_parents']
+                                   else 'False',
+                                   ref_parents[entry['name']]])
+            print_volatility_table(table_header, table_rows)
 
         def print_path(entries, psdict):
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Path', '<40'),
-                               ('Pass', '>6'),
-                               ('Expected Path', '<40')])
+            table_header = ['pid', 'Name', 'Path', 'Pass', 'Expected Path']
+            table_rows = []
             for entry in entries:
                 expected = self._check_config['path'][entry['name']]
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['name'],
-                               entry['path'],
-                               'True' if entry['check']['path'] else 'False',
-                               expected)
+                table_rows.append([entry['pid'],
+                                   entry['name'],
+                                   entry['path'],
+                                   'True' if entry['check']['path'] else 'False',
+                                   expected])
+            print_volatility_table(table_header, table_rows)
 
         def print_no_children(entries, psdict):
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Pass', '>6'),
-                               ('pid_child', '>9'),
-                               ('Name_child', '<20')])
+            table_header = ['pid', 'Name', 'Pass', 'pid_child', 'Name_child']
+            table_rows = []
             for entry in entries:
                 if not entry['check']['no_children']:
                     children = [x['pid']
                                 for x in psdict.values()
                                 if x['ppid'] == entry['pid']]
                     for pid in children:
-                        self.table_row(outfd,
-                                       entry['pid'],
-                                       entry['name'],
-                                       'False',
-                                       pid,
-                                       psdict[pid]['name'])
+                        table_rows.append(entry['pid'],
+                                          entry['name'],
+                                          'False',
+                                          pid,
+                                          psdict[pid]['name'])
                 else:
-                    self.table_row(outfd,
-                                   entry['pid'],
-                                   entry['name'],
-                                   'True',
-                                   '',
-                                   '')
+                    table_rows.append([entry['pid'],
+                                       entry['name'],
+                                       'True',
+                                       '',
+                                       ''])
+            print_volatility_table(table_header, table_rows)
 
         def print_no_parent(entries, psdict):
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('ppid', '>6'),
-                               ('Name', '<20'),
-                               ('Pass', '>6'),
-                               ('Parent name', '<20')])
+            table_header = ['pid', 'ppid', 'Name', 'Pass', 'Parent name']
+            table_rows = []
             for entry in entries:
                 parent = (''
                           if entry['check']['no_parent']
                           else psdict[entry['ppid']]['name'])
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['ppid'],
-                               entry['name'],
-                               'True'
-                               if entry['check']['no_parent']
-                               else 'False',
-                               parent)
+                table_rows.append([entry['pid'],
+                                   entry['ppid'],
+                                   entry['name'],
+                                   'True'
+                                   if entry['check']['no_parent']
+                                   else 'False',
+                                   parent])
+            print_volatility_table(table_header, table_rows)
 
         def print_static_pid(entries, psdict):
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Pass', '>6'),
-                               ('Expected pid', '>12')])
+            table_header = ['pid', 'Name', 'Pass', 'Expected pid']
+            table_rows = []
             for entry in entries:
                 expected = self._check_config['static_pid'][entry['name']]
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['name'],
-                               'True'
-                               if entry['check']['static_pid']
-                               else 'False',
-                               expected)
+                table_rows.append([entry['pid'],
+                                   entry['name'],
+                                   'True'
+                                   if entry['check']['static_pid']
+                                   else 'False',
+                                   expected])
+            print_volatility_table(table_header, table_rows)
 
         def print_faked(entries, psdict):
-            self.table_header(outfd,
-                              [('pid', '>6'),
-                               ('Name', '<20'),
-                               ('Pass', '>6'),
-                               ('Faked name', '<20')])
+            table_header = ['pid', 'Name', 'Pass', 'Faked name']
+            table_rows = []
             threshold = self._config.faked_threshold
             check_entries = self._check_config['faked']
             for entry in entries:
@@ -260,11 +240,13 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                                       check_entries,
                                                       1,
                                                       threshold)
-                self.table_row(outfd,
-                               entry['pid'],
-                               entry['name'],
-                               'True' if entry['check']['faked'] else 'False',
-                               faked[0])
+                table_rows.append([entry['pid'],
+                                   entry['name'],
+                                   'True'
+                                   if entry['check']['faked']
+                                   else 'False',
+                                   faked[0]])
+            print_volatility_table(table_header, table_rows)
 
         def print_check(print_func, check_name, psdict):
             outfd.write("{} Check\n".format(check_name))
