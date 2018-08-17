@@ -92,6 +92,14 @@ class CheckPSTree(common.AbstractWindowsCommand):
             return zip(ps_sorted, ps_level)
 
         def print_pstree(psdict):
+            def check_output(psdict, pid, check_name):
+                local check = psdict[pid]['check']
+                return (''
+                        if not check_name in check
+                        else ('T'
+                              if check[check_name]
+                              else 'F'))
+
             outfd.write("PSTree\n")
             ps_sorted = sort_processes(psdict)
             self.table_header(outfd,
@@ -107,42 +115,18 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                ("S", "<2"),
                                ("F", "<2")])
             for (pid, level) in ps_sorted:
-                check = psdict[pid]['check']
-                unique_names = ''
-                if 'unique_names' in check:
-                    unique_names = 'T' if check['unique_names'] else 'F'
-                no_children = ''
-                if 'no_children' in check:
-                    no_children = 'T' if check['no_children'] else 'F'
-                no_parent = ''
-                if 'no_parent' in check:
-                    no_parent = 'T' if check['no_parent'] else 'F'
-                reference_parents = ''
-                if 'reference_parents' in check:
-                    reference_parents = ('T'
-                                         if check['reference_parents']
-                                         else 'F')
-                path = ''
-                if 'path' in check:
-                    path = 'T' if check['path'] else 'F'
-                static_pid = ''
-                if 'static_pid' in check:
-                    static_pid = 'T' if check['static_pid'] else 'F'
-                faked = ''
-                if 'faked' in check:
-                    faked = 'T' if check['faked'] else 'F'
                 self.table_row(outfd,
                                '.' * level,
                                pid,
                                psdict[pid]['ppid'],
                                psdict[pid]['name'],
-                               unique_names,
-                               no_children,
-                               no_parent,
-                               reference_parents,
-                               path,
-                               static_pid,
-                               faked)
+                               check_output(psdict, pid, 'unique_names'),
+                               check_output(psdict, pid, 'no_children'),
+                               check_output(psdict, pid, 'no_parent'),
+                               check_output(psdict, pid, 'reference_parents'),
+                               check_output(psdict, pid, 'path'),
+                               check_output(psdict, pid, 'static_pid'),
+                               check_output(psdict, pid, 'faked'))
             outfd.write("\n")
 
         def print_unique_names(entries, psdict):
