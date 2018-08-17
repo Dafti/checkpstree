@@ -30,10 +30,7 @@ import volatility.win32.tasks as tasks
 import volatility.utils as utils
 import volatility.plugins.common as common
 import volatility.cache as cache
-import volatility.obj as obj
 import volatility.debug as debug
-from volatility.renderers.basic import Address, Hex
-import volatility.plugins.vadinfo as vadinfo
 
 #pylint: disable-msg=C0111
 
