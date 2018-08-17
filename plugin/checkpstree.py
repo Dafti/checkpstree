@@ -339,56 +339,56 @@ CheckPSTree analysis report
 
     def check_no_children(self, psdict):
         check_entries = self._check_config['no_children']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
                 children = [x['pid'] for x in psdict.values()
-                            if x['ppid'] == ps['pid']]
-                ps['check']['no_children'] = not children
+                            if x['ppid'] == proc['pid']]
+                proc['check']['no_children'] = not children
 
     def check_no_parent(self, psdict):
         check_entries = self._check_config['no_parent']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
                 parent = [x['pid'] for x in psdict.values()
-                          if x['pid'] == ps['ppid']]
-                ps['check']['no_parent'] = not parent
+                          if x['pid'] == proc['ppid']]
+                proc['check']['no_parent'] = not parent
 
     def check_reference_parents(self, psdict):
         check_entries = self._check_config['reference_parents']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                expected = check_entries[ps['name']]
-                parent = psdict[ps['ppid']]['name']
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                expected = check_entries[proc['name']]
+                parent = psdict[proc['ppid']]['name']
                 check_pass = parent == expected
-                ps['check']['reference_parents'] = check_pass
+                proc['check']['reference_parents'] = check_pass
 
     def check_path(self, psdict):
         check_entries = self._check_config['path']
-        for ps in psdict.values():
-            if ps['name'] in check_entries:
-                path = ps['path'].lower() if ps['path'] else ""
-                expected_path = check_entries[ps['name']].lower()
-                ps['check']['path'] = path == expected_path
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                path = proc['path'].lower() if proc['path'] else ""
+                expected_path = check_entries[proc['name']].lower()
+                proc['check']['path'] = path == expected_path
 
     def check_static_pid(self, psdict):
         check_entries = self._check_config['static_pid']
-        for ps in psdict.values():
-            if ps['name'] in check_entries.keys():
-                check_pass = ps['pid'] == int(check_entries[ps['name']])
-                ps['check']['static_pid'] = check_pass
+        for proc in psdict.values():
+            if proc['name'] in check_entries.keys():
+                check_pass = proc['pid'] == int(check_entries[proc['name']])
+                proc['check']['static_pid'] = check_pass
 
     def check_faked(self, psdict):
         check_entries = self._check_config['faked']
-        for ps in psdict.values():
-            match = difflib.get_close_matches(ps['name'],
+        for proc in psdict.values():
+            match = difflib.get_close_matches(proc['name'],
                                               check_entries,
                                               1,
                                               self._config.faked_threshold)
             if match:
-                if match[0] != ps['name']:
-                    ps['check']['faked'] = False
+                if match[0] != proc['name']:
+                    proc['check']['faked'] = False
                 else:
-                    ps['check']['faked'] = True
+                    proc['check']['faked'] = True
 
     # Perform plugin checks. Currently it includes:
     # - unique_names
@@ -452,17 +452,17 @@ CheckPSTree analysis report
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
         psdict = {}
-        for ps in pslist:
-            audit = ps.SeAuditProcessCreationInfo.ImageFileName.Name or ''
-            proc = {'pid': int(ps.UniqueProcessId),
-                    'ppid': int(ps.InheritedFromUniqueProcessId),
-                    'name': str(ps.ImageFileName),
-                    'ctime': str(ps.CreateTime),
+        for rawproc in pslist:
+            audit = rawproc.SeAuditProcessCreationInfo.ImageFileName.Name or ''
+            proc = {'pid': int(rawproc.UniqueProcessId),
+                    'ppid': int(rawproc.InheritedFromUniqueProcessId),
+                    'name': str(rawproc.ImageFileName),
+                    'ctime': str(rawproc.CreateTime),
                     'audit': str(audit),
                     'cmd': None,
                     'path': None,
                     'check': {}}
-            process_params = ps.Peb.ProcessParameters
+            process_params = rawproc.Peb.ProcessParameters
             if process_params:
                 proc['cmd'] = str(process_params.CommandLine)
                 proc['path'] = str(process_params.ImagePathName)
