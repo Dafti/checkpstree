@@ -61,6 +61,10 @@ class CheckPSTree(common.AbstractWindowsCommand):
             'FAKED_THRESHOLD', short_option='t', default=0.6,
             help='Threshold used for the faked check',
             action='store', type='float')
+        config.add_option(
+            'SUSPICIOUS_THRESHOLD', short_option='s', default=0.9,
+            help='Threshold used for the suspicious check',
+            action='store', type='float')
         self._check_config = {}
 
     def render_text(self, outfd, data):
@@ -127,7 +131,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             outfd.write("PSTree\n")
             ps_sorted = sort_processes(psdict)
             table_header = ['Level', 'pid', 'ppid', 'Name',
-                            'U', 'NC', 'NP', 'R', 'P', 'S', 'F']
+                            'U', 'NC', 'NP', 'R', 'P', 'SP', 'F', 'S']
             table_rows = []
             for (pid, level) in ps_sorted:
                 row = ['.' * level,
@@ -140,7 +144,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                        check_output(psdict, pid, 'reference_parents'),
                        check_output(psdict, pid, 'path'),
                        check_output(psdict, pid, 'static_pid'),
-                       check_output(psdict, pid, 'faked')]
+                       check_output(psdict, pid, 'faked'),
+                       check_output(psdict, pid, 'suspicious')]
                 table_rows.append(row)
             print_volatility_table(table_header, table_rows)
             outfd.write("\n")
@@ -258,6 +263,26 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    faked[0]])
             print_volatility_table(table_header, table_rows)
 
+        def print_suspicious(entries, dict):
+            table_header = ['pid', 'Name', 'Pass', 'Suspicious name']
+            table_rows = []
+            threshold = self._config.suspicious_threshold
+            check_entries = self._check_config['suspicious']
+            for entry in entries:
+                suspicious = ['']
+                if 'suspicious' in entry['check']:
+                    suspicious = difflib.get_close_matches(entry['name'],
+                                                           check_entries,
+                                                           1,
+                                                           threshold)
+                table_rows.append([entry['pid'],
+                                   entry['name'],
+                                   'True'
+                                   if entry['check']['suspicious']
+                                   else 'False',
+                                   suspicious[0]])
+            print_volatility_table(table_header, table_rows)
+
         def print_check(print_func, check_name, psdict):
             outfd.write("{} Check\n".format(check_name))
             entries = [ps for ps in psdict.values()
@@ -290,7 +315,8 @@ CheckPSTree analysis report
                        'reference_parents': print_reference_parents,
                        'path': print_path,
                        'static_pid': print_static_pid,
-                       'faked': print_faked}
+                       'faked': print_faked,
+                       'suspicious': print_suspicious}
         for key in self._check_config.keys():
             if key in print_funcs.keys():
                 print_check(print_funcs[key], key, psdict)
@@ -352,16 +378,31 @@ CheckPSTree analysis report
 
     def check_faked(self, psdict):
         check_entries = self._check_config['faked']
+        threshold = self._config.faked_threshold
         for proc in psdict.values():
             match = difflib.get_close_matches(proc['name'],
                                               check_entries,
                                               1,
-                                              self._config.faked_threshold)
+                                              threshold)
             if match:
                 if match[0] != proc['name']:
                     proc['check']['faked'] = False
                 else:
                     proc['check']['faked'] = True
+
+    def check_suspicious(self, psdict):
+        check_entries = self._check_config['suspicious']
+        threshold = self._config.suspicious_threshold
+        for proc in psdict.values():
+            match = difflib.get_close_matches(proc['name'],
+                                              check_entries,
+                                              1,
+                                              threshold)
+            if match:
+                if match[0] != proc['name']:
+                    proc['check']['suspicious'] = True
+                else:
+                    proc['check']['suspicious'] = False
 
     # Perform plugin checks. Currently it includes:
     # - unique_names
@@ -371,6 +412,7 @@ CheckPSTree analysis report
     # - path
     # - static_pid
     # - faked
+    # - suspicious
     def checking(self, psdict):
         # For every check in the configuration perform the correspondent check.
         check_funcs = {'unique_names': self.check_unique_names,
@@ -379,7 +421,8 @@ CheckPSTree analysis report
                        'reference_parents': self.check_reference_parents,
                        'path': self.check_path,
                        'static_pid': self.check_static_pid,
-                       'faked': self.check_faked}
+                       'faked': self.check_faked,
+                       'suspicious': self.check_suspicious}
         for key in self._check_config.keys():
             if key in check_funcs.keys():
                 check_funcs[key](psdict)
