@@ -22,7 +22,7 @@
 # along with Volatility.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-"""checkpstree example file"""
+"""Volatility plugin: Checkpstree"""
 import os.path
 import json
 import difflib
@@ -35,7 +35,7 @@ import volatility.debug as debug
 #pylint: disable-msg=C0111
 
 class CheckPSTree(common.AbstractWindowsCommand):
-    """Print process list as a tree and perform check on common anomalies"""
+    """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
     meta_info = {
         'author': ['Toni', 'CFX', 'Eric Jouenne', 'Daniel Gracia Perez'],
@@ -64,22 +64,29 @@ class CheckPSTree(common.AbstractWindowsCommand):
         self._check_config = {}
 
     def render_text(self, outfd, data):
+        """Output checks results in textual format."""
 
         def print_volatility_table(header, rows):
-            # compute lengths
-            lengths = map(lambda x: len(str(x)),
+            """`render_text` utility function to print nice tables."""
+            # compute column lengths as the length of the longest entry
+            # including the header plus 1
+            lengths = map(lambda x: len(str(x)) + 1,
                           header)
             for row in rows:
-                lengths = map(lambda x, y: max(len(str(x)), y),
+                lengths = map(lambda x, y: max(len(str(x)) + 1, y),
                               row, lengths)
-            lengths = map(lambda x: x + 1, lengths)
+            # prepare the header for the renderer: list of tuples with
+            # the column name and the width combined with the alignment
             outheader = map(lambda x, y: (x, '<{}'.format(y)),
                             header, lengths)
+            # print out the table
             self.table_header(outfd, outheader)
             for row in rows:
                 self.table_row(outfd, *row)
 
         def print_pstree(psdict):
+            """Prints the provided list of processes in a tree format
+            with an overview of the checks result."""
 
             def add_processes(ps_sorted, ps_level, ppid, level):
                 pids = [ps['pid']
@@ -91,6 +98,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                     add_processes(ps_sorted, ps_level, pid, level + 1)
 
             def sort_processes(psdict):
+                """Utility method to create a printable tree of the
+                provided processes dictionary."""
                 ps_sorted = []
                 ps_level = []
                 while len(ps_sorted) != len(psdict):
