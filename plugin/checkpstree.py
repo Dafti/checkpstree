@@ -217,11 +217,11 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                 for x in psdict.values()
                                 if x['ppid'] == entry['pid']]
                     for pid in children:
-                        table_rows.append(entry['pid'],
-                                          entry['name'],
-                                          'False',
-                                          pid,
-                                          psdict[pid]['name'])
+                        table_rows.append([entry['pid'],
+                                           entry['name'],
+                                           'False',
+                                           pid,
+                                           psdict[pid]['name']])
                 else:
                     table_rows.append([entry['pid'],
                                        entry['name'],
