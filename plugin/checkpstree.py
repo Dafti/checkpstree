@@ -47,6 +47,32 @@ def _find_root(pidlist, psdict):
     # the root process is the last in the seen list
     return seen[-1]
 
+def _find_roots(psdict):
+    """From a dictionary of processes find which ones are root"""
+    pslist = psdict.keys()
+    roots = []
+    rmlist = []
+    # helper function to recursively remove children of the given pid
+    # from the pslist
+    def _rem_children(pid):
+        children = [x['pid']
+                    for x in psdict.values()
+                    if x['ppid'] == pid and x['pid'] not in rmlist]
+        for child in children:
+            pslist.remove(child)
+            rmlist.append(child)
+        for child in children:
+            _rem_children(child)
+
+    # while the list is not empty
+    while pslist:
+        root = _find_root(pslist, psdict)
+        roots.append(root)
+        rmlist.append(root)
+        pslist.remove(root)
+        _rem_children(root)
+    return roots
+
 class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
@@ -493,6 +519,8 @@ CheckPSTree analysis report
                     'audit': str(audit),
                     'cmd': None,
                     'path': None,
+                    # for the moment no one is root, it will be decided later
+                    'root': False,
                     'check': {}}
             process_params = rawproc.Peb.ProcessParameters
             if process_params:
@@ -507,6 +535,12 @@ CheckPSTree analysis report
                                    proc['pid'], proc))
                 continue
             psdict[proc['pid']] = proc
+        # We need to determine which are the roots
+        # this information is needed to have some coherence between our checks
+        # and the process tree that is printed
+        roots = _find_roots(psdict)
+        for root in roots:
+            psdict[root]['root'] = True
         return psdict
 
     @cache.CacheDecorator(lambda self: "tests/checkpstree/verbose={0}".format(
