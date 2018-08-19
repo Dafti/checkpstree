@@ -60,7 +60,7 @@
       "svshost.exe", "system.exe", "system32.exe" , "teekids.exe",
       "trickler.exe", "tsadbot.exe", "tvmd.exe", "tvtmd.exe", "webdav.exe",
       "win32.exe", "win32us.exe", "winactive.exe", "win-bugsfix.exe",
-      "windows.exe" , "wininetd.exe", "wininit.exe", "winlogin.exe",
+      "windows.exe" , "wininetd.exe", "winlogin.exe",
       "winmain.exe", "winnet.exe", "winppr32.exe", "winservn.exe",
       "winssk32.exe", "winstart.exe", "winstart001.exe", "wintsk32.exe",
       "winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"],
