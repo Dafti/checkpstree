@@ -34,6 +34,19 @@ import volatility.debug as debug
 
 #pylint: disable-msg=C0111
 
+def _find_root(pidlist, psdict):
+    """From the input list of pids find a pid that is a root, i.e.
+    it has no parent in the process tree"""
+    # follow the pid/ppid one of the processes until we find
+    # a process without parent
+    seen = list()
+    pid = pidlist[0]
+    while pid in pidlist and pid not in seen:
+        seen.append(pid)
+        pid = int(psdict[pid]['ppid'])
+    # the root process is the last in the seen list
+    return seen[-1]
+
 class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
@@ -107,33 +120,17 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 provided processes dictionary."""
                 ps_sorted = []
                 ps_level = []
-                print("len(psdict) = {}\n".format(len(psdict)))
                 while len(ps_sorted) != len(psdict):
                     # get remaining processes to sort
                     pidsrem = filter(lambda x: x not in ps_sorted, psdict.keys())
                     # with the following the tree might be different
                     # pidsrem = list(reversed(filter(lambda x: x not in ps_sorted, psdict.keys())))
-                    seen = set()
-                    pid = pidsrem[0]
-                    cpid = None
-                    while pid in pidsrem and pid not in seen:
-                        seen.add(pid)
-                        cpid = pid
-                        pid = int(psdict[pid]['ppid'])
-                    # roots = [ps['pid']
-                    #          for pid in pidsrem
-                    #          if (ps['ppid'] not in psdict and
-                    #              ps['pid'] not in ps_sorted)]
-                    # if not roots:
-                    #     debug.warning("No root found")
-                    #     break
-                    # root = roots[0]
-                    # ps_sorted.append(root)
-                    ps_sorted.append(cpid)
+                    root = _find_root(pidsrem, psdict)
+                    # we add it to the list of sorted processes with level 0
+                    # and then add its children
+                    ps_sorted.append(root)
                     ps_level.append(0)
-                    add_processes(ps_sorted, ps_level, cpid, 1)
-                print("len(ps_sorted) = {}\n".format(len(ps_sorted)))
-                print("len(ps_level) = {}\n".format(len(ps_level)))
+                    add_processes(ps_sorted, ps_level, root, 1)
                 return zip(ps_sorted, ps_level)
 
             def check_output(psdict, pid, check_name):
