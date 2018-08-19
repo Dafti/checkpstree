@@ -97,27 +97,43 @@ class CheckPSTree(common.AbstractWindowsCommand):
                         for ps in psdict.values()
                         if ps['ppid'] == ppid]
                 for pid in pids:
-                    ps_sorted.append(pid)
-                    ps_level.append(level)
-                    add_processes(ps_sorted, ps_level, pid, level + 1)
+                    if pid not in ps_sorted:
+                        ps_sorted.append(pid)
+                        ps_level.append(level)
+                        add_processes(ps_sorted, ps_level, pid, level + 1)
 
             def sort_processes(psdict):
                 """Utility method to create a printable tree of the
                 provided processes dictionary."""
                 ps_sorted = []
                 ps_level = []
+                print("len(psdict) = {}\n".format(len(psdict)))
                 while len(ps_sorted) != len(psdict):
-                    roots = [ps['pid']
-                             for ps in psdict.values()
-                             if (ps['ppid'] not in psdict.keys() and
-                                 ps['pid'] not in ps_sorted)]
-                    if not roots:
-                        debug.warning("No root found")
-                        break
-                    root = roots[0]
-                    ps_sorted.append(root)
+                    # get remaining processes to sort
+                    pidsrem = filter(lambda x: x not in ps_sorted, psdict.keys())
+                    # with the following the tree might be different
+                    # pidsrem = list(reversed(filter(lambda x: x not in ps_sorted, psdict.keys())))
+                    seen = set()
+                    pid = pidsrem[0]
+                    cpid = None
+                    while pid in pidsrem and pid not in seen:
+                        seen.add(pid)
+                        cpid = pid
+                        pid = int(psdict[pid]['ppid'])
+                    # roots = [ps['pid']
+                    #          for pid in pidsrem
+                    #          if (ps['ppid'] not in psdict and
+                    #              ps['pid'] not in ps_sorted)]
+                    # if not roots:
+                    #     debug.warning("No root found")
+                    #     break
+                    # root = roots[0]
+                    # ps_sorted.append(root)
+                    ps_sorted.append(cpid)
                     ps_level.append(0)
-                    add_processes(ps_sorted, ps_level, root, 1)
+                    add_processes(ps_sorted, ps_level, cpid, 1)
+                print("len(ps_sorted) = {}\n".format(len(ps_sorted)))
+                print("len(ps_level) = {}\n".format(len(ps_level)))
                 return zip(ps_sorted, ps_level)
 
             def check_output(psdict, pid, check_name):
