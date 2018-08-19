@@ -398,9 +398,6 @@ CheckPSTree analysis report
         for proc in psdict.values():
             if proc['name'] in check_entries:
                 proc['check']['no_children'] = proc['pid'] in leafs
-                # children = [x['pid'] for x in psdict.values()
-                #             if x['ppid'] == proc['pid']]
-                # proc['check']['no_children'] = not children
 
     def check_no_parent(self, psdict):
         check_entries = self._check_config['no_parent']
