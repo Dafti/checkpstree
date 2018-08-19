@@ -18,8 +18,8 @@
     "path": {
       "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
       "services.exe": "C:\\WINDOWS\\system32\\services.exe",
-      "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
-      "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
+      "winlogon.exe": "C:\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "C:\\WINDOWS\\system32\\csrss.exe",
       "smss.exe": "\\SystemRoot\\System32\\smss.exe",
       "wpabaln.exe": "C:\\WINDOWS\\system32\\wpabaln.exe",
       "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
