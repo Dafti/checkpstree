@@ -440,13 +440,14 @@ CheckPSTree analysis report
             if key in check_funcs.keys():
                 check_funcs[key](psdict)
 
-    # Check the configuration files
-    # If no configuration was provided we try to load a configuration file from
-    # <plugin_path>/checkpstree_configs/<profile>.json
-    # profile being the value in self._config.PROFILE
-    # If the user specifies another configuration file in self._config.CONFIG
-    # then the user specified file is loaded.
     def check_config(self):
+        """Check the configuration file.
+
+        If no configuration was provided we try to load a configuration file
+        from `<plugin_path>/checkpstree_configs/<profile>.json` profile being
+        the value in `self._config.PROFILE`.
+        If the user specifies another configuration file in
+        `self._config.CONFIG` then the user specified file is loaded."""
         config_filename = self._config.CONFIG
         if config_filename is None:
             profile = self._config.PROFILE + ".json"
