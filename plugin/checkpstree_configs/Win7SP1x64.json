@@ -15,35 +15,20 @@
       "LogonUI.exe" : "winlogon.exe",
       "rdpclip.exe" : "services.exe"
     },
-    "peb_fullname": {
-      "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
+    "path": {
       "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
-      "lsm.exe": "C:\\WINDOWS\\system32\\lsm.exe",
-      "taskhost.exe": "C:\\WINDOWS\\system32\\taskhost.exe",
-      "wininit.exe": "C:\\WINDOWS\\system32\\wininit.exe",
       "services.exe": "C:\\WINDOWS\\system32\\services.exe",
       "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
       "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
       "smss.exe": "\\SystemRoot\\System32\\smss.exe",
-      "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
+      "wpabaln.exe": "C:\\WINDOWS\\system32\\wpabaln.exe",
+      "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
       "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
       "lsass.exe": "C:\\WINDOWS\\system32\\lsass.exe",
+      "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
+      "wmiprvse.exe": "C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe",
+      "ctfmon.exe": "C:\\WINDOWS\\system32\\ctfmon.exe",
       "explorer.exe": "C:\\WINDOWS\\explorer.exe"
-    },
-    "vad_filename": {
-      "wuauclt.exe": "\\WINDOWS\\system32\\wuauclt.exe",
-      "svchost.exe": "\\WINDOWS\\system32\\svchost.exe",
-      "lsm.exe": "\\WINDOWS\\system32\\lsm.exe",
-      "taskhost.exe": "\\WINDOWS\\system32\\taskhost.exe",
-      "wininit.exe": "\\WINDOWS\\system32\\wininit.exe",
-      "services.exe": "\\WINDOWS\\system32\\services.exe",
-      "winlogon.exe": "\\WINDOWS\\system32\\winlogon.exe",
-      "csrss.exe": "\\WINDOWS\\system32\\csrss.exe",
-      "smss.exe": "\\WINDOWS\\system32\\smss.exe",
-      "spoolsv.exe": "\\WINDOWS\\system32\\spoolsv.exe",
-      "alg.exe": "\\WINDOWS\\system32\\alg.exe",
-      "lsass.exe": "\\WINDOWS\\system32\\lsass.exe",
-      "explorer.exe": "\\WINDOWS\\explorer.exe"
     },
     "static_pid":  {
       "System": "4"
@@ -78,7 +63,7 @@
       "windows.exe" , "wininetd.exe", "wininit.exe", "winlogin.exe",
       "winmain.exe", "winnet.exe", "winppr32.exe", "winservn.exe",
       "winssk32.exe", "winstart.exe", "winstart001.exe", "wintsk32.exe",
-"winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"],
+      "winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"],
     "user_name":  {
       "smss.exe": ["NT AUTHORITY\\SYSTEM"],
       "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
