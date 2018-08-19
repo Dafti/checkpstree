@@ -134,26 +134,19 @@ class CheckPSTree(common.AbstractWindowsCommand):
             def add_processes(ps_sorted, ps_level, ppid, level):
                 pids = [ps['pid']
                         for ps in psdict.values()
-                        if ps['ppid'] == ppid]
+                        if ps['ppid'] == ppid and ps['pid'] not in ps_sorted]
                 for pid in pids:
-                    if pid not in ps_sorted:
-                        ps_sorted.append(pid)
-                        ps_level.append(level)
-                        add_processes(ps_sorted, ps_level, pid, level + 1)
+                    ps_sorted.append(pid)
+                    ps_level.append(level)
+                    add_processes(ps_sorted, ps_level, pid, level + 1)
 
             def sort_processes(psdict):
                 """Utility method to create a printable tree of the
                 provided processes dictionary."""
                 ps_sorted = []
                 ps_level = []
-                while len(ps_sorted) != len(psdict):
-                    # get remaining processes to sort
-                    pidsrem = filter(lambda x: x not in ps_sorted, psdict.keys())
-                    # with the following the tree might be different
-                    # pidsrem = list(reversed(filter(lambda x: x not in ps_sorted, psdict.keys())))
-                    root = _find_root(pidsrem, psdict)
-                    # we add it to the list of sorted processes with level 0
-                    # and then add its children
+                roots = [x['pid'] for x in psdict.values() if x['root']]
+                for root in roots:
                     ps_sorted.append(root)
                     ps_level.append(0)
                     add_processes(ps_sorted, ps_level, root, 1)
