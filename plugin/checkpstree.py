@@ -417,16 +417,16 @@ CheckPSTree analysis report
                 else:
                     proc['check']['suspicious'] = False
 
-    # Perform plugin checks. Currently it includes:
-    # - unique_names
-    # - no_children
-    # - no_parent
-    # - reference_parents
-    # - path
-    # - static_pid
-    # - faked
-    # - suspicious
     def checking(self, psdict):
+        """Perform plugin checks. Currently it includes:
+        - unique_names
+        - no_children
+        - no_parent
+        - reference_parents
+        - path
+        - static_pid
+        - faked
+        - suspicious"""
         # For every check in the configuration perform the correspondent check.
         check_funcs = {'unique_names': self.check_unique_names,
                        'no_children': self.check_no_children,
