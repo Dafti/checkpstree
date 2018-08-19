@@ -73,6 +73,30 @@ def _find_roots(psdict):
         _rem_children(root)
     return roots
 
+def _find_leafs(psdict):
+    roots = _find_roots(psdict)
+    pslist = psdict.keys()
+    rmlist = []
+    leafs = []
+    def _find_branch_leafs(pid):
+        children = [x['pid']
+                    for x in psdict.values()
+                    if x['ppid'] == pid and x['pid'] not in rmlist]
+        if not children:
+            leafs.append(pid)
+        else:
+            for child in children:
+                pslist.remove(child)
+                rmlist.append(child)
+            for child in children:
+                _find_branch_leafs(child)
+    while pslist:
+        root = roots.pop()
+        pslist.remove(root)
+        rmlist.append(root)
+        _find_branch_leafs(root)
+    return leafs
+
 class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
@@ -370,27 +394,30 @@ CheckPSTree analysis report
 
     def check_no_children(self, psdict):
         check_entries = self._check_config['no_children']
+        leafs = _find_leafs(psdict)
         for proc in psdict.values():
             if proc['name'] in check_entries:
-                children = [x['pid'] for x in psdict.values()
-                            if x['ppid'] == proc['pid']]
-                proc['check']['no_children'] = not children
+                proc['check']['no_children'] = proc['pid'] in leafs
+                # children = [x['pid'] for x in psdict.values()
+                #             if x['ppid'] == proc['pid']]
+                # proc['check']['no_children'] = not children
 
     def check_no_parent(self, psdict):
         check_entries = self._check_config['no_parent']
         for proc in psdict.values():
             if proc['name'] in check_entries:
-                parent = [x['pid'] for x in psdict.values()
-                          if x['pid'] == proc['ppid']]
-                proc['check']['no_parent'] = not parent
+                # Simply check that the process is root or not
+                proc['check']['no_parent'] = proc['root']
 
     def check_reference_parents(self, psdict):
         check_entries = self._check_config['reference_parents']
         for proc in psdict.values():
             if proc['name'] in check_entries:
-                expected = check_entries[proc['name']]
-                parent = psdict[proc['ppid']]['name']
-                check_pass = parent == expected
+                check_pass = not proc['root']
+                if not check_pass:
+                    expected = check_entries[proc['name']]
+                    parent = psdict[proc['ppid']]['name']
+                    check_pass = parent == expected
                 proc['check']['reference_parents'] = check_pass
 
     def check_path(self, psdict):
