@@ -478,6 +478,8 @@ CheckPSTree analysis report
         self._check_config = config['config']
 
     def build_psdict(self):
+        """Transform the raw processes from the provided memory dump into a
+        dictionary of processed processes indexed by their pid."""
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
         psdict = {}
@@ -495,7 +497,14 @@ CheckPSTree analysis report
             if process_params:
                 proc['cmd'] = str(process_params.CommandLine)
                 proc['path'] = str(process_params.ImagePathName)
-            # TODO: check that the pid doesn't already exist
+            # check if the pid has already been seen, if so inform the user
+            # and don't include the current process in the list of processes
+            # that will be analyzed
+            if proc['pid'] in psdict:
+                debug.warning(("pid {} found two times in the process list. " +
+                               "Skipping the following entry {}.").format(
+                                   proc['pid'], proc))
+                continue
             psdict[proc['pid']] = proc
         return psdict
 
