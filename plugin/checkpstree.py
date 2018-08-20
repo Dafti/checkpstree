@@ -113,6 +113,11 @@ class CheckPSTree(common.AbstractWindowsCommand):
 
     def render_text(self, outfd, data):
         """Output checks results in textual format."""
+        # All the functions to print checks results build a table and send
+        # it to the `print_volatility_table` helper function to effectively
+        # print it out.
+        # The only print function not using that helper function, new checks
+        # should exploit it.
 
         def print_volatility_table(header, rows):
             """`render_text` utility function to print nice tables."""
@@ -137,6 +142,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
             with an overview of the checks result."""
 
             def add_processes(ps_sorted, ps_level, ppid, level):
+                """Add the provided pid children and descendants in the list of
+                sorted processes"""
                 pids = [ps['pid']
                         for ps in psdict.values()
                         if ps['ppid'] == ppid and ps['pid'] not in ps_sorted]
@@ -158,6 +165,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 return zip(ps_sorted, ps_level)
 
             def check_output(psdict, pid, check_name):
+                """Return the result of a check in string format: '' if the
+                check was not done for the given pid, 'T' if it was successful,
+                and 'F' if not."""
                 check = psdict[pid]['check']
                 return (''
                         if not check_name in check
@@ -188,6 +198,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             outfd.write("\n")
 
         def print_unique_names(entries, psdict):
+            """Print results of the unique_name check."""
             table_header = ['Name', 'Count', 'Pass']
             table_rows = []
             for entry in entries:
@@ -202,6 +213,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_reference_parents(entries, psdict):
+            """Print results of the reference_parents check."""
             table_header = ['Name', 'pid', 'Parent', 'ppid', 'Pass',
                             'Expected Parent']
             table_rows = []
@@ -218,6 +230,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_path(entries, psdict):
+            """Print result of the path check."""
             table_header = ['pid', 'Name', 'Path', 'Pass', 'Expected Path']
             table_rows = []
             for entry in entries:
@@ -230,6 +243,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_no_children(entries, psdict):
+            """Print result of no_children check."""
             table_header = ['pid', 'Name', 'Pass', 'pid_child', 'Name_child']
             table_rows = []
             for entry in entries:
@@ -252,6 +266,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_no_parent(entries, psdict):
+            """Print result of no_parent check."""
             table_header = ['pid', 'ppid', 'Name', 'Pass', 'Parent name']
             table_rows = []
             for entry in entries:
@@ -268,6 +283,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_static_pid(entries, psdict):
+            """Print result of static_pid check."""
             table_header = ['pid', 'Name', 'Pass', 'Expected pid']
             table_rows = []
             for entry in entries:
@@ -281,6 +297,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_faked(entries, psdict):
+            """Print result of faked check."""
             table_header = ['pid', 'Name', 'Pass', 'Faked name']
             table_rows = []
             threshold = self._config.faked_threshold
@@ -301,6 +318,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_suspicious(entries, dict):
+            """Print result of suspicious check."""
             table_header = ['pid', 'Name', 'Pass', 'Suspicious name']
             table_rows = []
             threshold = self._config.suspicious_threshold
@@ -321,6 +339,9 @@ class CheckPSTree(common.AbstractWindowsCommand):
             print_volatility_table(table_header, table_rows)
 
         def print_check(print_func, check_name, psdict):
+            """Wrapper function for the print check functions: do the common
+            work of checking if there was that was inspected and faulty in
+            the requested check."""
             outfd.write("{} Check\n".format(check_name))
             entries = [ps for ps in psdict.values()
                        if 'check' in ps and check_name in ps['check']]
@@ -363,6 +384,8 @@ CheckPSTree analysis report
 """)
 
     def check_unique_names(self, psdict):
+        """Check if names defined in the config appear at most once in the
+        process list."""
         check_entries = self._check_config['unique_names']
         for name in check_entries:
             pids = [x['pid'] for x in psdict.values() if x['name'] == name]
@@ -537,7 +560,7 @@ CheckPSTree analysis report
             psdict[proc['pid']] = proc
         # We need to determine which are the roots and also the leafs
         # this information is needed to have some coherence between our checks
-        # and the process tree that is printed
+        # and the process tree that is printed.
         (roots, leafs) = _find_roots_and_leafs(psdict)
         for root in roots:
             psdict[root]['root'] = True
