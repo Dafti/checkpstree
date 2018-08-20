@@ -1,7 +1,7 @@
 {"config":
   {
     "unique_names": ["services.exe", "System", "smss.exe", "lsass.exe",
-      "ctfmon.exe", "alg.exe", "spoolsv.exe", "wmiprvse.exe"],
+      "ctfmon.exe", "alg.exe", "spoolsv.exe", "wmiprvse.exe","userinit.exe"],
     "no_children":  ["lsass.exe", "csrss.exe","alg.exe", "wpabaln.exe",
       "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "ctfmon.exe"],
     "no_parent":    ["System","explorer.exe"],
@@ -45,7 +45,7 @@
               "monitor.exe","mprexe.exe","msdtc.exe","msgsrv32.exe","msiexec.exe","msoobe.exe","mssearch.exe","mstask.exe","mtx.exe","netdde.exe",
               "ntfrs.exe","rundll32.exe","runonce.exe","scanreg.exe","scm.exe","services.exe","smss.exe","snmp.exe","snmptrap.exe","spool32.exe",
               "sspoolss.exe","spoolsv.exe","srvany.exe","stores.exe","svchost.exe","System","systray.exe","tapisrv.exe","taskmgr.exe","tvdm.exe",
-              "undll32.exe","unonce.exe","winlogon.exe","winmgmt.exe","wisptis.exe","wmiexe.exe","wmiprvse.exe","wowexec.exe","wpabaln.exe","wscntfy.exe"],
+              "undll32.exe","unonce.exe","userinit.exe","wuauclt.exe","winlogon.exe","winmgmt.exe","wisptis.exe","wmiexe.exe","wmiprvse.exe","wowexec.exe","wpabaln.exe","wscntfy.exe"],
     "suspicious":["adaware.exe","age.exe","alevir.exe", "arr.exe", "ascv.exe",
       "backWeb.exe", "bargains.exe", "blss.exe", "bootconf.exe", "bpc.exe",
       "brasil.exe", "bundle.exe", "bvt.exe", "cfd.exe" , "cmd32.exe",
