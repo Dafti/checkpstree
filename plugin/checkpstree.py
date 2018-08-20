@@ -397,6 +397,10 @@ CheckPSTree analysis report
                         psdict[pid]['check']['unique_names'] = False
 
     def check_no_children(self, psdict):
+        """Check if names defined in the config don't have any childreen"""
+        # Because processes already have annotations indicating if they are
+        # a leaf, checking if a process has or hasn't children is just
+        # checking if the process is a leaf or not.
         check_entries = self._check_config['no_children']
         for proc in psdict.values():
             if proc['name'] in check_entries:
@@ -404,6 +408,11 @@ CheckPSTree analysis report
                 proc['check']['no_children'] = proc['leaf']
 
     def check_no_parent(self, psdict):
+        """Check if names defined in the config are a root of the process
+        tree."""
+        # Because processes already have annotations indicating if they are
+        # a root, checking if a process is root is just checking the
+        # annotation.
         check_entries = self._check_config['no_parent']
         for proc in psdict.values():
             if proc['name'] in check_entries:
@@ -411,9 +420,14 @@ CheckPSTree analysis report
                 proc['check']['no_parent'] = proc['root']
 
     def check_reference_parents(self, psdict):
+        """Check if the names defined in the config have as parent process
+        the one indicated in the config."""
         check_entries = self._check_config['reference_parents']
         for proc in psdict.values():
             if proc['name'] in check_entries:
+                # If the process is a root of the process tree then it can't
+                # pass the check, because it will never have the parent
+                # indicated in the config.
                 check_pass = not proc['root']
                 if not check_pass:
                     expected = check_entries[proc['name']]
@@ -422,14 +436,20 @@ CheckPSTree analysis report
                 proc['check']['reference_parents'] = check_pass
 
     def check_path(self, psdict):
+        """Check if the names defined in the config have the defined path."""
         check_entries = self._check_config['path']
         for proc in psdict.values():
             if proc['name'] in check_entries:
+                # As Windows is caseless we compare the found path and the
+                # defined path as lowercase, to make sure that the difference
+                # that might be found is a letter that in one case is capital
+                # and in the other no.
                 path = proc['path'].lower() if proc['path'] else ""
                 expected_path = check_entries[proc['name']].lower()
                 proc['check']['path'] = path == expected_path
 
     def check_static_pid(self, psdict):
+        """Check if the names defined in the config have the defined pid."""
         check_entries = self._check_config['static_pid']
         for proc in psdict.values():
             if proc['name'] in check_entries.keys():
@@ -437,9 +457,17 @@ CheckPSTree analysis report
                 proc['check']['static_pid'] = check_pass
 
     def check_faked(self, psdict):
+        """Check if the names defined in the config have processes with names
+        that are very similar.
+        If so it means that the found processes are maybe trying to cheat the
+        user making him/her believe it's a valid process.
+
+        This check can be configured in the command line.
+        This check may raise a large number of false positives."""
         check_entries = self._check_config['faked']
         threshold = self._config.faked_threshold
         for proc in psdict.values():
+            # The difflib lib is used to check the names' similarity.
             match = difflib.get_close_matches(proc['name'],
                                               check_entries,
                                               1,
@@ -451,6 +479,8 @@ CheckPSTree analysis report
                     proc['check']['faked'] = True
 
     def check_suspicious(self, psdict):
+        """Check if the suspicious names defined in the config are among the
+        processes in the image or if there are similar ones."""
         check_entries = self._check_config['suspicious']
         threshold = self._config.suspicious_threshold
         for proc in psdict.values():
