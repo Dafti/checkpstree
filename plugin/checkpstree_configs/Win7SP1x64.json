@@ -33,9 +33,15 @@
     "static_pid":  {
       "System": "4"
     },
-    "faked": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe",
-      "ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe",
-      "svchost.exe", "winlogon.exe", "cmd.exe", "csrss.exe"],
+    "faked":["agentsvr.exe","alg.exe","autorun.exe","cconnect.exe","cidaemon.exe","cisvc.exe","clisvcl.exe","cmd.exe","csrss.exe",
+              "ctfmon.exe","ddhelp.exe","dfssvc.exe","dllhost.exe","dmadmin.exe","dns.exe","dumprep.exe","egsvc.exe","egsvr32.exe",
+              "explorer.exe","grpconv.exe","helpctr.exe","hidserv.exe","iexplore.exe","imapi.exe","inetinfo.exe","internat.exe","ireike.exe","ismserv.exe",
+              "kernel32.dll","launch32.exe","lights.exe","locator.exe","lsass.exe","mad.exe","mapisp32.exe","mdm.exe","mmc.exe","mmtask.tsk","mnmsrvc.exe",
+              "monitor.exe","mprexe.exe","msdtc.exe","msgsrv32.exe","msiexec.exe","msoobe.exe","mssearch.exe","mstask.exe","mtx.exe","netdde.exe",
+              "ntfrs.exe","rundll32.exe","runonce.exe","scanreg.exe","scm.exe","services.exe","smss.exe","snmp.exe","snmptrap.exe","spool32.exe",
+              "sspoolss.exe","spoolsv.exe","srvany.exe","stores.exe","svchost.exe","System","systray.exe","tapisrv.exe","taskmgr.exe","tvdm.exe",
+              "undll32.exe","unonce.exe","wininit.exe","winlogon.exe","winmgmt.exe","wisptis.exe","wmiexe.exe","wmiprvse.exe","wowexec.exe",
+              "wpabaln.exe","wscntfy.exe"],
     "suspicious":["adaware.exe" , "alevir.exe", "arr.exe", "ascv.exe",
       "backWeb.exe", "bargains.exe", "blss.exe", "bootconf.exe", "bpc.exe",
       "brasil.exe", "bundle.exe", "bvt.exe", "cfd.exe" , "cmd32.exe",
