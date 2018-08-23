@@ -84,10 +84,11 @@ class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
     meta_info = {
-        'author': ['Toni', 'CFX', 'Eric Jouenne', 'Daniel Gracia Perez'],
+        'author': ['Toni Gerard', 'Francois-Xavier Babin',
+            'Eric Jouenne', 'Daniel Gracia Perez'],
         'copyright': 'Copyright (c) 2018 ' +
-                     'Toni, ' +
-                     'CFX, ' +
+                     'Toni Gerard, ' +
+                     'Francois-Xavier Babin, ' +
                      'Eric Jouenne and ' +
                      'Daniel Gracia Perez',
         'contact': 'daniel.gracia-perez@cfa-afti.fr',
