@@ -326,11 +326,12 @@ class CheckPSTree(common.AbstractWindowsCommand):
             table_header = ['pid', 'Name', 'Pass', 'Suspicious name']
             table_rows = []
             threshold = self._config.suspicious_threshold
-            check_entries = self._check_config['suspicious']
+            check_entries = map(lambda x: x.lower(),
+                                self._check_config['suspicious'])
             for entry in entries:
                 suspicious = ['']
                 if 'suspicious' in entry['check']:
-                    suspicious = difflib.get_close_matches(entry['name'],
+                    suspicious = difflib.get_close_matches(entry['name'].lower(),
                                                            check_entries,
                                                            1,
                                                            threshold)
@@ -527,15 +528,16 @@ CheckPSTree analysis report
     def check_suspicious(self, psdict):
         """Check if the suspicious names defined in the config are among the
         processes in the image or if there are similar ones."""
-        check_entries = self._check_config['suspicious']
+        check_entries = map(lambda x: x.lower(),
+                            self._check_config['suspicious'])
         threshold = self._config.suspicious_threshold
         for proc in psdict.values():
-            match = difflib.get_close_matches(proc['name'],
+            match = difflib.get_close_matches(proc['name'].lower(),
                                               check_entries,
                                               1,
                                               threshold)
             if match:
-                if match[0] != proc['name']:
+                if match[0] != proc['name'].lower():
                     proc['check']['suspicious'] = True
                 else:
                     proc['check']['suspicious'] = False
