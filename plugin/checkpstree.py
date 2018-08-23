@@ -401,6 +401,20 @@ class CheckPSTree(common.AbstractWindowsCommand):
                         print_func(suspicious_entries, psdict)
             outfd.write("\n")
 
+        def print_checks(psdict):
+            print_funcs = {'unique_names': print_unique_names,
+                           'no_children': print_no_children,
+                           'no_parent': print_no_parent,
+                           'reference_parents': print_reference_parents,
+                           'path': print_path,
+                           'static_pid': print_static_pid,
+                           'faked': print_faked,
+                           'suspicious': print_suspicious,
+                           'sids': print_sids}
+            for key in self._check_config.keys():
+                if key in print_funcs.keys():
+                    print_check(print_funcs[key], key, psdict)
+
         psdict = data['psdict']
         outfd.write("""
 ===============================================================================
@@ -408,18 +422,7 @@ CheckPSTree analysis report
 
 """)
         print_pstree(psdict)
-        print_funcs = {'unique_names': print_unique_names,
-                       'no_children': print_no_children,
-                       'no_parent': print_no_parent,
-                       'reference_parents': print_reference_parents,
-                       'path': print_path,
-                       'static_pid': print_static_pid,
-                       'faked': print_faked,
-                       'suspicious': print_suspicious,
-                       'sids': print_sids}
-        for key in self._check_config.keys():
-            if key in print_funcs.keys():
-                print_check(print_funcs[key], key, psdict)
+        print_checks(psdict)
         outfd.write("""
 ===============================================================================
 
