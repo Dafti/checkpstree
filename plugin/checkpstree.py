@@ -32,6 +32,7 @@ import volatility.utils as utils
 import volatility.plugins.common as common
 import volatility.cache as cache
 import volatility.debug as debug
+import volatility.plugins.getsids as getsids_mod
 
 #pylint: disable-msg=C0111
 
@@ -179,7 +180,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             outfd.write("PSTree\n")
             ps_sorted = sort_processes(psdict)
             table_header = ['Level', 'pid', 'ppid', 'Name',
-                            'U', 'NC', 'NP', 'R', 'P', 'SP', 'F', 'S']
+                            'U', 'NC', 'NP', 'R', 'P', 'SP', 'F', 'S', 'SI']
             table_rows = []
             for (pid, level) in ps_sorted:
                 row = ['.' * level,
@@ -193,7 +194,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                        check_output(psdict, pid, 'path'),
                        check_output(psdict, pid, 'static_pid'),
                        check_output(psdict, pid, 'faked'),
-                       check_output(psdict, pid, 'suspicious')]
+                       check_output(psdict, pid, 'suspicious'),
+                       check_output(psdict, pid, 'sids')]
                 table_rows.append(row)
             print_volatility_table(table_header, table_rows)
             outfd.write("\n")
@@ -318,7 +320,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    faked[0]])
             print_volatility_table(table_header, table_rows)
 
-        def print_suspicious(entries, dict):
+        def print_suspicious(entries, psdict):
             """Print result of suspicious check."""
             table_header = ['pid', 'Name', 'Pass', 'Suspicious name']
             table_rows = []
@@ -338,6 +340,44 @@ class CheckPSTree(common.AbstractWindowsCommand):
                                    else 'False',
                                    suspicious[0]])
             print_volatility_table(table_header, table_rows)
+
+        def print_sids(entries, psdict):
+            """Print result of sids check."""
+            table_header = ['pid', 'Name', 'Pass', 'Found SID']
+            table_rows = []
+            check_entries = self._check_config['sids']
+            # my_dict = {}
+            for entry in entries:
+                # if entry['name'] not in my_dict:
+                #     my_dict[entry['name']] = []
+                # my_dict[entry['name']].extend(entry['sids'])
+                found = set(entry['sids'])
+                expected = set(check_entries[entry['name']])
+                in_both = list(found.intersection(expected))
+                in_entry = list(found - expected)
+                in_expected = list(expected - found)
+                if self._config.VERBOSE:
+                    for sid in in_both:
+                        table_rows.append([entry['pid'],
+                                           entry['name'],
+                                           'True',
+                                           sid])
+                for sid in in_entry:
+                    table_rows.append([entry['pid'],
+                                       entry['name'],
+                                       'False',
+                                       sid])
+                # diff = map(lambda x, y: (x if x else '', y if y else ''),
+                #         in_entry, in_expected)
+                # for (proc_sid, expected_sid) in diff:
+                #     table_rows.append([entry['pid'],
+                #                        entry['name'],
+                #                        'False',
+                #                        proc_sid,
+                #                        expected_sid])
+            print_volatility_table(table_header, table_rows)
+            # for (k,v) in my_dict.iteritems():
+            #     outfd.write("{} = {}\n".format(k, list(set(v))))
 
         def print_check(print_func, check_name, psdict):
             """Wrapper function for the print check functions: do the common
@@ -375,7 +415,8 @@ CheckPSTree analysis report
                        'path': print_path,
                        'static_pid': print_static_pid,
                        'faked': print_faked,
-                       'suspicious': print_suspicious}
+                       'suspicious': print_suspicious,
+                       'sids': print_sids}
         for key in self._check_config.keys():
             if key in print_funcs.keys():
                 print_check(print_funcs[key], key, psdict)
@@ -495,6 +536,17 @@ CheckPSTree analysis report
                 else:
                     proc['check']['suspicious'] = False
 
+    def check_sids(self, psdict):
+        """Check if the processes have the expected sids."""
+        check_entries = self._check_config['sids']
+        for proc in psdict.values():
+            if proc['name'] in check_entries:
+                found = set(proc['sids'])
+                expected = set(check_entries[proc['name']])
+                # diff = list(found.symmetric_difference(expected))
+                diff = list(found - expected)
+                proc['check']['sids'] = True if not diff else False
+
     def checking(self, psdict):
         """Perform plugin checks. Currently it includes:
         - unique_names
@@ -504,7 +556,8 @@ CheckPSTree analysis report
         - path
         - static_pid
         - faked
-        - suspicious"""
+        - suspicious
+        - sids"""
         # For every check in the configuration perform the correspondent check.
         check_funcs = {'unique_names': self.check_unique_names,
                        'no_children': self.check_no_children,
@@ -513,7 +566,8 @@ CheckPSTree analysis report
                        'path': self.check_path,
                        'static_pid': self.check_static_pid,
                        'faked': self.check_faked,
-                       'suspicious': self.check_suspicious}
+                       'suspicious': self.check_suspicious,
+                       'sids': self.check_sids}
         for key in self._check_config.keys():
             if key in check_funcs.keys():
                 check_funcs[key](psdict)
@@ -556,21 +610,39 @@ CheckPSTree analysis report
         #       to verify that it has the supported fields and so on
         self._check_config = config['config']
 
+    def __get_processes_sids(self):
+        getsids = getsids_mod.GetSIDs(self._config)
+        output_getsids = getsids.unified_output(getsids.calculate())
+        def sidvisit(node, accum):
+            pid = int(node.values[0])
+            if pid not in accum:
+                accum[pid] = []
+            sid = node.values[3]
+            accum[pid].append(sid)
+            return accum
+        siddict = output_getsids.visit(None, sidvisit, {})
+        return siddict
+
     def build_psdict(self):
         """Transform the raw processes from the provided memory dump into a
         dictionary of processed processes indexed by their pid."""
         addr_space = utils.load_as(self._config)
         pslist = tasks.pslist(addr_space)
+        pidsids_dict = self.__get_processes_sids()
         psdict = {}
         for rawproc in pslist:
             audit = rawproc.SeAuditProcessCreationInfo.ImageFileName.Name or ''
-            proc = {'pid': int(rawproc.UniqueProcessId),
+            pid = int(rawproc.UniqueProcessId)
+            proc = {'pid': pid,
                     'ppid': int(rawproc.InheritedFromUniqueProcessId),
                     'name': str(rawproc.ImageFileName),
                     'ctime': str(rawproc.CreateTime),
                     'audit': str(audit),
                     'cmd': None,
                     'path': None,
+                    'sids': pidsids_dict[int(rawproc.UniqueProcessId)]
+                            if pid in pidsids_dict
+                            else None,
                     # for the moment no one is root, it will be decided later
                     'root': False,
                     # for the moment no one is leaf, it will be decided later
