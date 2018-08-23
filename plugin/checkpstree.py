@@ -579,6 +579,10 @@ CheckPSTree analysis report
             if process_params:
                 proc['cmd'] = str(process_params.CommandLine)
                 proc['path'] = str(process_params.ImagePathName)
+                # if we have the path we can extract the fullname of the
+                # application which is sometimes truncated in the
+                # process.ImageFileName
+                proc['name'] = os.path.basename(proc['path'].split('\\')[-1])
             # check if the pid has already been seen, if so inform the user
             # and don't include the current process in the list of processes
             # that will be analyzed
