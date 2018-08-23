@@ -353,7 +353,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 #     my_dict[entry['name']] = []
                 # my_dict[entry['name']].extend(entry['sids'])
                 found = set(entry['sids'])
-                expected = set(check_entries[entry['name']])
+                expected = set(check_entries[entry['name'].lower()])
                 in_both = list(found.intersection(expected))
                 in_entry = list(found - expected)
                 in_expected = list(expected - found)
@@ -544,9 +544,9 @@ CheckPSTree analysis report
         """Check if the processes have the expected sids."""
         check_entries = self._check_config['sids']
         for proc in psdict.values():
-            if proc['name'] in check_entries:
+            if proc['name'].lower() in check_entries:
                 found = set(proc['sids'])
-                expected = set(check_entries[proc['name']])
+                expected = set(check_entries[proc['name'].lower()])
                 # diff = list(found.symmetric_difference(expected))
                 diff = list(found - expected)
                 proc['check']['sids'] = True if not diff else False
