@@ -26,6 +26,7 @@
 import os.path
 import json
 import difflib
+import ntpath
 import volatility.win32.tasks as tasks
 import volatility.utils as utils
 import volatility.plugins.common as common
@@ -582,7 +583,7 @@ CheckPSTree analysis report
                 # if we have the path we can extract the fullname of the
                 # application which is sometimes truncated in the
                 # process.ImageFileName
-                proc['name'] = os.path.basename(proc['path'].split('\\')[-1])
+                proc['name'] = ntpath.basename(proc['path'])
             # check if the pid has already been seen, if so inform the user
             # and don't include the current process in the list of processes
             # that will be analyzed
