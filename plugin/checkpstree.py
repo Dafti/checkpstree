@@ -305,7 +305,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
             table_header = ['pid', 'Name', 'Pass', 'Faked name']
             table_rows = []
             threshold = self._config.faked_threshold
-            check_entries = self._check_config['faked']
+            check_entries = map(lambda x: x.lower(),
+                                self._check_config['faked'])
             for entry in entries:
                 faked = ['']
                 if not entry['check']['faked']:
@@ -511,7 +512,7 @@ CheckPSTree analysis report
 
         This check can be configured in the command line.
         This check may raise a large number of false positives."""
-        check_entries = self._check_config['faked']
+        check_entries = map(lambda x: x.lower(), self._check_config['faked'])
         threshold = self._config.faked_threshold
         for proc in psdict.values():
             # The difflib lib is used to check the names' similarity.
