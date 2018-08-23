@@ -347,11 +347,11 @@ class CheckPSTree(common.AbstractWindowsCommand):
             table_header = ['pid', 'Name', 'Pass', 'Found SID']
             table_rows = []
             check_entries = self._check_config['sids']
-            my_dict = {}
+            # my_dict = {}
             for entry in entries:
-                if entry['name'] not in my_dict:
-                    my_dict[entry['name']] = []
-                my_dict[entry['name']].extend(entry['sids'])
+                # if entry['name'] not in my_dict:
+                #     my_dict[entry['name']] = []
+                # my_dict[entry['name']].extend(entry['sids'])
                 found = set(entry['sids'])
                 expected = set(check_entries[entry['name']])
                 in_both = list(found.intersection(expected))
@@ -377,8 +377,8 @@ class CheckPSTree(common.AbstractWindowsCommand):
                 #                        proc_sid,
                 #                        expected_sid])
             print_volatility_table(table_header, table_rows)
-            for (k,v) in my_dict.iteritems():
-                outfd.write("{} = {}\n".format(k, list(set(v))))
+            # for (k,v) in my_dict.iteritems():
+            #     outfd.write("{} = {}\n".format(k, list(set(v))))
 
         def print_check(print_func, check_name, psdict):
             """Wrapper function for the print check functions: do the common
