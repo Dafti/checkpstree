@@ -70,20 +70,6 @@
       "winmain.exe", "winnet.exe", "winppr32.exe", "winservn.exe",
       "winssk32.exe", "winstart.exe", "winstart001.exe", "wintsk32.exe",
       "winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"],
-    "sids": {
-      "smss.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "csrss.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "services.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "lsass.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "svchost.exe": ["Everyone", "Users", "Service", "NT Authority", "Logon Session",
-        "Authenticated Users", "Administrators", "Local System", "RpcSs",
-        "Local (Users with the ability to log in locally)", "WebClient"],
-      "System": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "winlogon.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"],
-      "alg.exe": ["Everyone", "Users", "Service", "NT Authority", "Logon Session",
-        "Authenticated Users", "Local (Users with the ability to log in locally)"],
-      "spoolsv.exe": ["Administrators", "Everyone", "Local System", "Authenticated Users"]
-},
     "user_name":  {
       "smss.exe": ["NT AUTHORITY\\SYSTEM"],
       "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
