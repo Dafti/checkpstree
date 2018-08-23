@@ -309,7 +309,7 @@ class CheckPSTree(common.AbstractWindowsCommand):
             for entry in entries:
                 faked = ['']
                 if not entry['check']['faked']:
-                    faked = difflib.get_close_matches(entry['name'],
+                    faked = difflib.get_close_matches(entry['name'].lower(),
                                                       check_entries,
                                                       1,
                                                       threshold)
@@ -514,12 +514,12 @@ CheckPSTree analysis report
         threshold = self._config.faked_threshold
         for proc in psdict.values():
             # The difflib lib is used to check the names' similarity.
-            match = difflib.get_close_matches(proc['name'],
+            match = difflib.get_close_matches(proc['name'].lower(),
                                               check_entries,
                                               1,
                                               threshold)
             if match:
-                if match[0] != proc['name']:
+                if match[0] != proc['name'].lower():
                     proc['check']['faked'] = False
                 else:
                     proc['check']['faked'] = True
