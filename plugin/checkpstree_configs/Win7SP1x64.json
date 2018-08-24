@@ -69,16 +69,6 @@
       "windows.exe" , "wininetd.exe", "winlogin.exe",
       "winmain.exe", "winnet.exe", "winppr32.exe", "winservn.exe",
       "winssk32.exe", "winstart.exe", "winstart001.exe", "wintsk32.exe",
-      "winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"],
-    "user_name":  {
-      "smss.exe": ["NT AUTHORITY\\SYSTEM"],
-      "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
-      "wininit.exe": ["NT AUTHORITY\\SYSTEM"],
-      "services.exe": ["NT AUTHORITY\\SYSTEM"],
-      "lsass.exe": ["NT AUTHORITY\\SYSTEM"],
-      "svchost.exe" : ["NT AUTHORITY\\SYSTEM", "LOCAL SERVICE","NETWORK SERVICE"],
-      "lsm.exe" : ["NT AUTHORITY\\SYSTEM"],
-      "LogonUI.exe" : ["NT AUTHORITY\\SYSTEM"]
-    }
+      "winupdate.exe", "wnad.exe", "wuamgrd.exe", "wupdt.exe"]
   }
 }
