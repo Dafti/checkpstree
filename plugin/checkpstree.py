@@ -1,9 +1,9 @@
 # Volatility
 #
 # Authors
-# Toni
-# CFX
-# Eric
+# Tony <tony.gerard@cfa-afti.fr>
+# Francois Xavier <francois-xavier.babin@cfa-afti.fr>
+# Eric <eric.jouenne@cfa-afti.fr>
 # Daniel Gracia Perez <daniel.gracia-perez@cfa-afti.fr>
 #
 # This file is part of Volatility.
@@ -84,10 +84,10 @@ class CheckPSTree(common.AbstractWindowsCommand):
     """Print process list as a tree and perform check on common anomalies."""
     # Declare meta information associated with this plugin
     meta_info = {
-        'author': ['Toni Gerard', 'Francois-Xavier Babin',
+        'author': ['Tony Gerard', 'Francois-Xavier Babin',
             'Eric Jouenne', 'Daniel Gracia Perez'],
         'copyright': 'Copyright (c) 2018 ' +
-                     'Toni Gerard, ' +
+                     'Tony Gerard, ' +
                      'Francois-Xavier Babin, ' +
                      'Eric Jouenne and ' +
                      'Daniel Gracia Perez',
