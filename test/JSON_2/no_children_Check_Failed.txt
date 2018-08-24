@@ -3,50 +3,71 @@
 CheckPSTree analysis report
 
 PSTree
-Level  pid   ppid  Name             U  NC  NP  R  P  S  F 
------- ----- ----- ---------------- -- --- --- -- -- -- --
-       4     0     System           T      T         T  T 
-.      544   4     smss.exe         T          T  T     T 
-..     632   544   winlogon.exe                T  T     T 
-...    688   632   lsass.exe        T  T       T  T     T 
-...    676   632   services.exe     T  F       T  T     T 
-....   1668  676   vmtoolsd.exe                           
-.....  1368  1668  cmd.exe                              T 
-....   856   676   svchost.exe                 T  T     T 
-....   1432  676   spoolsv.exe      T  T       T  T     T 
-....   1028  676   svchost.exe                 T  T     T 
-.....  1732  1028  wuauclt.exe                 T  T       
-.....  468   1028  wuauclt.exe                 T  T       
-.....  888   1028  wscntfy.exe         T       T        T 
-....   936   676   svchost.exe                 T  T     T 
-....   1968  676   TPAutoConnSvc.e                        
-.....  1084  1968  TPAutoConnect.e                        
-....   1088  676   svchost.exe                 T  T     T 
-....   844   676   vmacthlp.exe                           
-....   216   676   alg.exe          T  T       T  T     T 
-....   1148  676   svchost.exe                 T  T     T 
-....   1788  676   VMUpgradeHelper                        
-..     608   544   csrss.exe           T       T  T     T 
-       1724  1708  explorer.exe            T      T       
-.      1984  1724  aelas.exe                              
-.      452   1724  VMwareUser.exe                         
-.      432   1724  VMwareTray.exe                         
+Level  pid   ppid  Name                 U  NC  NP  R  P  SP  F  S  SI 
+------ ----- ----- -------------------- -- --- --- -- -- --- -- -- ---
+       4     0     System               T      T         T   T        
+.      544   4     smss.exe             T          T  T      T        
+..     632   544   winlogon.exe                    T  T      T  T     
+...    688   632   lsass.exe            T  T       T  T      T        
+...    676   632   services.exe         T  F       T  T      T  T     
+....   1668  676   vmtoolsd.exe                                       
+.....  1368  1668  cmd.exe                                   T  T     
+....   856   676   svchost.exe                     T  T      T  T     
+....   1432  676   spoolsv.exe          T  T       T  T      T        
+....   1028  676   svchost.exe                     T  T      T  T     
+.....  1732  1028  wuauclt.exe                     T  T               
+.....  468   1028  wuauclt.exe                     T  T               
+.....  888   1028  wscntfy.exe             T       T         T        
+....   936   676   svchost.exe                     T  T      T  T     
+....   1968  676   TPAutoConnSvc.exe                                  
+.....  1084  1968  TPAutoConnect.exe                                  
+....   1088  676   svchost.exe                     T  T      T  T     
+....   844   676   vmacthlp.exe                                       
+....   216   676   alg.exe              T  T       T  T      T        
+....   1148  676   svchost.exe                     T  T      T  T     
+....   1788  676   VMUpgradeHelper.exe                                
+..     608   544   csrss.exe               T       T  T      T        
+       1724  1708  Explorer.EXE                                 T     
+.      1984  1724  aelas.exe                                          
+.      452   1724  VMwareUser.exe                                     
+.      432   1724  VMwareTray.exe                                     
 
 unique_names Check
 > No suspicious entries found
 
-no_children Check (test effectué: ajout de services .exe dans la liste des processus qui n'ont pas d'enfant.
-Traceback (most recent call last):
-  File "vol.py", line 192, in <module>
-    main()
-  File "vol.py", line 183, in main
-    command.execute()
-  File "/usr/lib/python2.7/dist-packages/volatility/commands.py", line 147, in execute
-    func(outfd, data)
-  File "/root/Téléchargements/checkpstree/plugin/checkpstree.py", line 296, in render_text
-    print_check(print_funcs[key], key, psdict)
-  File "/root/Téléchargements/checkpstree/plugin/checkpstree.py", line 277, in print_check
-    print_func(suspicious_entries, psdict)
-  File "/root/Téléchargements/checkpstree/plugin/checkpstree.py", line 203, in print_no_children
-    psdict[pid]['name'])
-TypeError: append() takes exactly one argument (5 given)
+suspicious Check
+> No suspicious entries found
+
+no_children Check
+pid  Name          Pass   pid_child  Name_child          
+---- ------------- ------ ---------- --------------------
+676  services.exe  False  1668       vmtoolsd.exe        
+676  services.exe  False  856        svchost.exe         
+676  services.exe  False  1432       spoolsv.exe         
+676  services.exe  False  1028       svchost.exe         
+676  services.exe  False  936        svchost.exe         
+676  services.exe  False  1968       TPAutoConnSvc.exe   
+676  services.exe  False  1088       svchost.exe         
+676  services.exe  False  844        vmacthlp.exe        
+676  services.exe  False  216        alg.exe             
+676  services.exe  False  1148       svchost.exe         
+676  services.exe  False  1788       VMUpgradeHelper.exe 
+
+reference_parents Check
+> No suspicious entries found
+
+static_pid Check
+> No suspicious entries found
+
+path Check
+> No suspicious entries found
+
+faked Check
+> No suspicious entries found
+
+no_parent Check
+> No suspicious entries found
+
+
+===============================================================================
+
