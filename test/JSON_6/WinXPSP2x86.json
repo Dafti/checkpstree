@@ -1,0 +1,60 @@
+{"config":
+  {
+    "unique_names": ["services.exe", "System", "smss.exe", "lsass.exe", "ctfmon.exe", "alg.exe", "spoolsv.exe", "wmiprvse.exe"],
+    "no_children":  ["lsass.exe", "csrss.exe","alg.exe", "wpabaln.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "ctfmon.exe"],
+    "no_parent":    ["System","explorer.exe"],
+    "reference_parents": {
+      "winlogon.exe": "smss.exe",
+      "csrss.exe": "smss.exe",
+      "smss.exe" : "System",
+      "services.exe" : "winlogon.exe",
+      "lsass.exe" : "winlogon.exe",
+      "wscntfy.exe": "svchost.exe",
+      "wuauclt.exe": "svchost.exe",
+      "ctfmon.exe": "explorer.exe",
+      "svchost.exe": "services.exe",
+      "spoolsv.exe": "services.exe",
+      "alg.exe": "services.exe",
+      "wpabaln.exe": "winlogon.exe",
+      "wmiprvse.exe": "svchost.exe"
+    },
+    "path": {
+      "svchost.exe": "C:\\WINDOWS\\system32\\svchost.exe",
+      "services.exe": "C:\\WINDOWS\\system32\\services.exe",
+      "winlogon.exe": "\\??\\C:\\WINDOWS\\system32\\winlogon.exe",
+      "csrss.exe": "\\??\\C:\\WINDOWS\\system32\\csrss.exe",
+      "smss.exe": "\\SystemRoot\\System32\\smss.exe",
+      "wpabaln.exe": "C:\\WINDOWS\\system32\\wpabaln.exe",
+      "wuauclt.exe": "C:\\WINDOWS\\system32\\wuauclt.exe",
+      "alg.exe": "C:\\WINDOWS\\System32\\alg.exe",
+      "lsass.exe": "C:\\WINDOWS\\BONDOSSIER\\Lsass.exe",
+      "spoolsv.exe": "C:\\WINDOWS\\system32\\spoolsv.exe",
+      "wmiprvse.exe": "C:\\WINDOWS\\system32\\wbem\\wmiprvse.exe",
+      "ctfmon.exe": "C:\\WINDOWS\\system32\\ctfmon.exe",
+      "explorer.exe": "C:\\WINDOWS\\explorer.exe"
+    },
+    "static_pid": {
+      "System": "4"
+    },
+    "faked": ["services.exe", "System", "smss.exe", "lsass.exe", "wpabaln.exe","ctfmon.exe", "alg.exe", "wscntfy.exe", "spoolsv.exe", "wmiprvse.exe", "svchost.exe", "winlogon.exe", "cmd.exe", "csrss.exe"],
+    "suspicious":["adaware.exe", "alevir.exe","arr.exe","ascv.exe","backWeb.exe","bargains.exe","blss.exe","bootconf.exe","bpc.exe","brasil.exe","bundle.exe","bvt.exe",
+                 "cfd.exe","cmd32.exe","cmesys.exe","datemanager.exe","dcomx.exe","divx.exe","dllreg.exe","dpps2.exe","dssagent.exe","emsw.exe","explore.exe","fsg_4104.exe",
+                 "gator.exe","gmt.exe","hbinst.exe","hbsrv.exe","hxdl.exe","hxiul.exe","iedll.exe","iedriver.exe","iexplorer.exe","infus.exe","infwin.exe",
+                 "intdel.exe","isass.exe","istsvc.exe","jdbgmgr.exe","kazza.exe","keenvalue.exe","kernel32.exe","launcher.exe","loader.exe","mapisvc32.exe","md.exe","mfin32.exe",
+                 "mmod.exe","mostat.exe","msapp.exe","msbb.exe","msblast.exe","mscache.exe","msccn32.exe","mscman.exe","msdm.exe","msiexec16.exe","mslagent.exe","mslaugh.exe",
+                 "msmgt.exe","msmsgri32.exe","msrexe.exe","mssys.exe","msvxd.exe","netd32.exe","nssys32.exe","nstask32.exe","nsupdate.exe","onsrvr.exe","optimize.exe",
+                 "patch.exe", "pgmonitr.exe","powerscan.exe","prizesurfer.exe","prmt.exe","prmvr.exe","ray.exe","rb32.exe","rcsync.exe","run32dll.exe","rundll.exe",
+                 "rundll16.exe","ruxdll32.exe","sahagent.exe","save.exe","savenow.exe","sc.exe","scam32.exe","scrsvr.exe","scvhost.exe","service.exe","showbehind.exe",
+                 "skynetave.exe","soap.exe","spoler.exe","srng.exe","start.exe","stcloader.exe","support.exe","svc.exe","svchosts.exe","svshost.exe","system.exe",
+                 "system32.exe","teekids.exe","trickler.exe","tsadbot.exe","tvmd.exe","tvtmd.exe","webdav.exe","win32.exe","win32us.exe","winactive.exe","win-bugsfix.exe",
+                 "windows.exe","wininetd.exe","wininit.exe","winlogin.exe","winmain.exe","winnet.exe","winppr32.exe","winservn.exe","winssk32.exe","winstart.exe",
+                 "winstart001.exe","wintsk32.exe","winupdate.exe","wnad.exe","wuamgrd.exe","wupdt.exe"],
+    "user_name": {
+      "smss.exe": ["NT AUTHORITY\\SYSTEM"],
+      "csrss.exe": ["NT AUTHORITY\\SYSTEM"],
+      "services.exe": ["NT AUTHORITY\\SYSTEM"],
+      "lsass.exe": ["NT AUTHORITY\\SYSTEM"],
+      "svchost.exe" : ["NT AUTHORITY\\SYSTEM", "LOCAL SERVICE","NETWORK SERVICE"]
+    }
+  }
+}

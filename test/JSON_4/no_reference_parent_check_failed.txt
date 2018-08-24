@@ -1,0 +1,66 @@
+
+===============================================================================
+CheckPSTree analysis report
+
+PSTree
+Level  pid   ppid  Name             U  NC  NP  R  P  S  F 
+------ ----- ----- ---------------- -- --- --- -- -- -- --
+       4     0     System           T      T         T  T 
+.      544   4     smss.exe         T          T  T     T 
+..     632   544   winlogon.exe                T  T     T 
+...    688   632   lsass.exe        T  T       T  T     T 
+...    676   632   services.exe     T          T  T     T 
+....   1668  676   vmtoolsd.exe                           
+.....  1368  1668  cmd.exe                              T 
+....   856   676   svchost.exe                 F  T     T 
+....   1432  676   spoolsv.exe      T  T       F  T     T 
+....   1028  676   svchost.exe                 F  T     T 
+.....  1732  1028  wuauclt.exe                 T  T       
+.....  468   1028  wuauclt.exe                 T  T       
+.....  888   1028  wscntfy.exe         T       T        T 
+....   936   676   svchost.exe                 F  T     T 
+....   1968  676   TPAutoConnSvc.e                        
+.....  1084  1968  TPAutoConnect.e                        
+....   1088  676   svchost.exe                 F  T     T 
+....   844   676   vmacthlp.exe                           
+....   216   676   alg.exe          T  T       F  T     T 
+....   1148  676   svchost.exe                 F  T     T 
+....   1788  676   VMUpgradeHelper                        
+..     608   544   csrss.exe           T       T  T     T 
+       1724  1708  explorer.exe            T      T       
+.      1984  1724  aelas.exe                              
+.      452   1724  VMwareUser.exe                         
+.      432   1724  VMwareTray.exe                         
+
+unique_names Check
+> No suspicious entries found
+
+no_children Check
+> No suspicious entries found
+
+reference_parents Check
+Name         pid   Parent        ppid  Pass   Expected Parent 
+------------ ----- ------------- ----- ------ ----------------
+svchost.exe  856   services.exe  676   False  test1.exe       
+spoolsv.exe  1432  services.exe  676   False  test2.exe       
+svchost.exe  1028  services.exe  676   False  test1.exe       
+svchost.exe  936   services.exe  676   False  test1.exe       
+svchost.exe  1088  services.exe  676   False  test1.exe       
+alg.exe      216   services.exe  676   False  test3.exe       
+svchost.exe  1148  services.exe  676   False  test1.exe       
+
+static_pid Check
+> No suspicious entries found
+
+path Check
+> No suspicious entries found
+
+faked Check
+> No suspicious entries found
+
+no_parent Check
+> No suspicious entries found
+
+
+===============================================================================
+
