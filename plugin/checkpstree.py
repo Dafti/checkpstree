@@ -477,7 +477,7 @@ CheckPSTree analysis report
                 # pass the check, because it will never have the parent
                 # indicated in the config.
                 check_pass = not proc['root']
-                if not check_pass:
+                if check_pass:
                     expected = check_entries[proc['name']]
                     parent = psdict[proc['ppid']]['name']
                     check_pass = parent == expected
